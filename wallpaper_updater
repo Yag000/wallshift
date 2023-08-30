@@ -119,7 +119,7 @@ update_wallpaper() {
     local wallpaper
     wallpaper=$(get_wallpaper)
     feh --bg-scale "$wallpaper"
-    betterlockscreen -u "$wallpaper" --desc "You better know the password :)" --fx
+    betterlockscreen -u "$wallpaper" --desc "You better know the password :)"
 }
 
 if [ $# -gt 0 ]; then
