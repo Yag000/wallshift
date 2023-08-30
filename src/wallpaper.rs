@@ -25,17 +25,25 @@ use crate::configuration::Settings;
 /// Panics if the file $HOME/.fehbg does not exist.
 ///
 pub fn get_current_wallpaper() -> PathBuf {
-    let feh_raw = read_to_string("~/.fehbg").expect("failed to open .fehbg file");
-
+    let feh_raw = read_to_string(format!(
+        "{}/.fehbg",
+        home::home_dir()
+            .expect("Unable to get home path")
+            .to_str()
+            .unwrap()
+    ))
+    .expect("failed to open .fehbg file");
     let wallpaper_path = feh_raw
         .lines()
+        // We take the second line because the first line is the shebang
         .nth(1)
         .expect("failed to parse .fehbg file, it should contain at least 2 lines")
+        // We take the last word
         .split(' ')
-        .last()
-        .expect(
-            "failed to parse .fehbg file, the last line should contain the path to the wallpaper",
-        )
+        .nth(3)
+        .expect("failed to parse .fehbg file, it should contain at least 4 words")
+        // Remove the single quotes
+        .trim_matches('\'')
         .to_string();
 
     PathBuf::from(wallpaper_path)
@@ -115,6 +123,98 @@ pub fn get_random_wallpaper_file(settings: &Settings) -> Option<PathBuf> {
 
     let random_number = rand::thread_rng().gen_range(0..files.len());
     Some(files.get(random_number).unwrap().as_ref().unwrap().path())
+}
+
+/// Gets the name of the folder that contains the given path.
+/// If the path is a folder it will return the name of the folder.
+///
+/// # Panics
+///
+/// If the path is not an animated wallpaper it may panic.
+pub fn get_animated_wallpaper_name(path: &Path) -> String {
+    if path.is_dir() {
+        path.file_name().unwrap().to_str().unwrap().to_owned()
+    } else {
+        path.parent()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned()
+    }
+}
+
+/// Returns a path to the next animated wallpaper.
+/// If the path is a folder it will return the first wallpaper in the folder.
+/// If the path is a file it will return the next wallpaper in the folder.
+/// If the path is the last wallpaper in the folder it will return None.
+///
+/// # Panics
+///
+/// Panics if the path is not an animated wallpaper.
+/// Panics if the wallpaper directory does not exist.
+/// Panics if the path is not a valid path.
+/// Panics if the name does not contain a number at the end.
+pub fn get_next_animated_wallpaper(settings: &Settings, path: &Path) -> Option<PathBuf> {
+    let name = get_animated_wallpaper_name(path);
+    let next_index;
+    if path.is_dir() {
+        next_index = 1;
+    } else {
+        let max_index = read_dir(format!("{}/{name}", settings.wallpaper_dir))
+            .expect("failed to open wallpaper directory")
+            .count();
+
+        // Get the last numbers of the name
+        let last_numbers = path
+            .file_stem()
+            .expect("failed to get file name")
+            .to_str()
+            .expect("failed to convert file name to str")
+            .chars()
+            .rev()
+            .take_while(|c| c.is_digit(10))
+            .collect::<String>()
+            .chars()
+            .rev()
+            .collect::<String>();
+
+        next_index = last_numbers.parse::<u32>().unwrap() + 1;
+        if next_index > max_index as u32 {
+            return None;
+        }
+    }
+
+    //TODO: Add support for other file formats
+    Some(PathBuf::from(format!(
+        "{}/{name}/{name}{}.png",
+        settings.wallpaper_dir, next_index
+    )))
+}
+
+pub fn get_next_wallpaper(settings: &Settings) -> PathBuf {
+    let current_wallpaper = get_current_wallpaper();
+    let new_wallpaper = get_random_wallpaper(settings)
+        .expect("failed to get random wallpaper, not enough wallpapers in the wallpaper directory");
+    if is_animated_wallpaper(settings, &current_wallpaper) {
+        update_animated(settings, &current_wallpaper)
+    } else if is_animated_wallpaper(settings, &new_wallpaper) {
+        update_animated(settings, &new_wallpaper)
+    } else {
+        new_wallpaper
+    }
+}
+
+pub fn update_animated(settings: &Settings, path: &Path) -> PathBuf {
+    let next_wallpaper = get_next_animated_wallpaper(settings, path);
+    if let Some(next_wallpaper) = next_wallpaper {
+        next_wallpaper
+    } else {
+        get_random_wallpaper_file(settings).expect(
+            "failed to get random wallpaper, not enough wallpapers in the wallpaper directory",
+        )
+    }
 }
 
 /// Updates the current wallpaper using feh.

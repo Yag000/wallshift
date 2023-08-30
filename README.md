@@ -20,3 +20,4 @@ The only main dependency for now is [feh](https://feh.finalrewind.org/), but in 
 ## TODO
 
 - [ ] ignore hidden files
+- [ ] Now the only supported file format for animated wallpapers is .png, but in the future it will be possible to use other formats.

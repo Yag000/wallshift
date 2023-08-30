@@ -1,5 +1,7 @@
 use clap_derive::Parser;
 
+use crate::configuration::{get_configuration, Settings};
+
 #[derive(Parser)]
 pub struct Cli {
     /// Toggle wallpaper
@@ -21,4 +23,26 @@ pub struct Cli {
     /// Updates the betterlockscreen wallpaper
     #[clap(long, group = "input")]
     betterlockscreen: bool,
+}
+
+impl Cli {
+    pub fn get_seconds(&self) -> Option<u64> {
+        if let Some(seconds) = self.seconds {
+            return Some(seconds);
+        }
+        if let Some(minutes) = self.minutes {
+            return Some(minutes * 60);
+        }
+        None
+    }
+
+    pub fn get_settings(&self) -> Settings {
+        let mut settings = get_configuration().unwrap_or_else(|_| Settings::default());
+        if let Some(seconds) = self.get_seconds() {
+            settings.sleep_time = seconds;
+        }
+        settings.betterlockscreen = self.betterlockscreen;
+
+        settings
+    }
 }
