@@ -1,0 +1,183 @@
+#!/bin/bash
+
+DEFAULT_SLEEP=$((60 * 30)) # 30 minutes
+SLEEP_TIME=$DEFAULT_SLEEP
+
+FOLDER=$HOME/Pictures/Wallpapers
+
+get_current_wallpaper(){
+    grep -oP "(?<=--bg-scale ').*(?=')" "$HOME/.fehbg"
+}
+
+get_random_wallpaper(){
+    find "$FOLDER" -mindepth 1 -maxdepth 1 | shuf -n 1
+}
+
+
+get_random_wallpaper_no_animated(){
+    find "$FOLDER" -mindepth 1 -maxdepth 1 -type f | shuf -n 1
+}
+
+get_wallpaper(){
+    local current_wallpaper
+    current_wallpaper=$(get_current_wallpaper)
+    local wallpaper
+    wallpaper=$(get_random_wallpaper)
+    if is_animated_wallpaper "$current_wallpaper"; then
+        wallpaper=$(update_animated "$current_wallpaper")
+    elif is_animated_wallpaper "$wallpaper" ; then
+        wallpaper=$(update_animated "$wallpaper")
+    fi
+    echo "$wallpaper"
+}
+
+
+update_animated(){
+    local wallpaper
+    wallpaper=$1
+    local animated_wallpaper
+    echo "Updating animated wallpaper: $wallpaper" >> /tmp/wallpaper_updater.log
+    animated_wallpaper="$(get_next_animated_wallpaper "$wallpaper")"
+    if [ "$animated_wallpaper" == "FAIL" ]; then
+        wallpaper=$(get_random_wallpaper_no_animated)
+    else
+        wallpaper=$animated_wallpaper
+    fi
+
+    echo "$wallpaper"
+}
+
+is_animated_wallpaper(){
+    for i in $(ls -d $FOLDER/*/); do
+        if echo "$1" | grep -q "$(basename "$i")"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+get_animated_wallpaper_name(){
+    for i in $(ls -d $FOLDER/*/); do
+        if echo "$1" | grep -q "$(basename "$i")"; then
+            basename "$i"
+        fi
+    done
+}
+
+
+get_animated_sleep(){
+    local name
+    local number
+    name="$1"
+    name=$(get_animated_wallpaper_name "$name")
+    number=$(ls "$FOLDER/$name" | wc -l)
+    echo "$(($DEFAULT_SLEEP/ $number))" >> /tmp/wallpaper_updater.log
+    echo "$(($DEFAULT_SLEEP/ $number))"
+}
+
+get_next_animated_wallpaper(){
+    local wallpaper
+    wallpaper=$1
+    local name
+    name=$(get_animated_wallpaper_name "$wallpaper")
+    echo "Getting next animated wallpaper: $wallpaper" >> /tmp/wallpaper_updater.log
+    echo "Getting next animated wallpaper name: $name" >> /tmp/wallpaper_updater.log
+    local max_index
+    max_index=$(ls "$FOLDER/$name" | wc -l)
+    if [ "$wallpaper" == "$FOLDER/$name" ]; then
+        next_index=1
+    else
+        next_index=$(($(echo "$wallpaper" | grep -oE "[0-9]+")+1))
+        echo "Next index: $next_index" >> /tmp/wallpaper_updater.log
+        echo "Max index: $max_index" >> /tmp/wallpaper_updater.log
+        if [ $next_index -gt "$max_index" ]; then
+            echo "FAIL" >> /tmp/wallpaper_updater.log
+            echo "FAIL"
+            return
+        fi
+    fi
+    echo "$FOLDER/$name/$name$next_index.png" >> /tmp/wallpaper_updater.log
+    echo "$FOLDER/$name/$name$next_index.png"
+}
+
+get_current_sleep_time(){
+
+    echo "Getting sleep time" >> /tmp/wallpaper_updater.log
+    local current_wallpaper
+
+    current_wallpaper=$(get_current_wallpaper)
+
+    if is_animated_wallpaper "$current_wallpaper" ; then
+        echo "Getting animated sleep time" >> /tmp/wallpaper_updater.log
+        get_animated_sleep "$current_wallpaper"
+    else
+        echo "Getting default sleep time" >> /tmp/wallpaper_updater.log
+        echo "$DEFAULT_SLEEP"
+    fi
+
+}
+
+update_wallpaper() {
+    echo "--------------------------------">> /tmp/wallpaper_updater.log
+    local wallpaper
+    wallpaper=$(get_wallpaper)
+    feh --bg-scale "$wallpaper"
+    betterlockscreen -u "$wallpaper" --desc "You better know the password :)" --fx
+}
+
+if [ $# -gt 0 ]; then
+    case $1 in
+        -t|--toggle)
+            update_wallpaper
+            exit 0
+            ;;
+        -s |--seconds)
+            SLEEP_TIME=$2
+            DEFAULT_SLEEP=$2
+            ;;
+        -m|--minutes)
+            SLEEP_TIME=$(($2 * 60))
+            DEFAULT_SLEEP=$(($2 * 60))
+            ;;
+        -g | --get)
+            get_wallpaper
+            exit 0
+            ;;
+        -h |--help)
+            echo "Usage: wallpaper_updater [OPTION]"
+            echo "  -t, --toggle    update wallpaper once"
+            echo "  -s, --seconds set sleep time in seconds, default is 1800 (30 minutes))"
+            echo "  -m  --minutes  set sleep time in minutes, default is 30 minutes"
+            echo "  -h, --help      display this help and exit"
+            exit 0
+            ;;
+        *)
+            ;;
+    esac
+
+fi
+
+echo "Starting wallpaper updater: $(date)" > /tmp/wallpaper_updater.log
+
+
+# Get the current process ID of the script
+current_pid=$$
+
+# Find all previous instances of the script and kill them
+previous_pids=$(pgrep -f "$(basename "$0")")
+
+# Exclude the current process ID from the list of previous PIDs
+previous_pids=$(echo "$previous_pids" | grep -vw "$current_pid")
+
+# Kill the previous instances of the script
+for pid in $previous_pids; do
+    echo "Killing previous instance: $pid" >> /tmp/wallpaper_updater.log
+    kill "$pid" >> /tmp/wallpaper_updater.log
+done
+
+while true; do
+    update_wallpaper
+    SLEEP_TIME=$(get_current_sleep_time)
+    echo "Sleeping for $SLEEP_TIME seconds" >> /tmp/wallpaper_updater.log
+    sleep "$SLEEP_TIME"
+done
