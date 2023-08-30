@@ -1,7 +1,7 @@
 use clap::Parser;
 
-use wallpaper_updater::cli::Cli;
-use wallpaper_updater::setup::run;
+use wallshift::cli::Cli;
+use wallshift::setup::run;
 
 fn main() {
     let cli = Cli::parse();
