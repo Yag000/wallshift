@@ -1,3 +1,6 @@
+use clap::Parser;
+use wallpaper_updater::cli::Cli;
+
 fn main() {
-    println!("Hello, world!");
+    Cli::parse();
 }
