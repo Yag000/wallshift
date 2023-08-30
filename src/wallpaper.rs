@@ -8,10 +8,10 @@ use crate::configuration::Settings;
 ///
 /// The .fehbg file is a shell script that is run when the user logs in. It is used to set the
 /// wallpaper. It uses the following format:
-/// ```
+///
 /// #!/bin/sh
 /// feh --no-fehbg --bg-fill /path/to/wallpaper
-/// ```
+///
 /// This function parses the .fehbg file and returns the path to the current wallpaper.
 ///
 /// # Panics
