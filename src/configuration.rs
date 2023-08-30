@@ -8,10 +8,10 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            wallpaper_dir: String::from(format!(
+            wallpaper_dir: format!(
                 "{}/Pictures/Wallpapers",
                 home::home_dir().unwrap().to_str().unwrap()
-            )),
+            ),
             betterlockscreen: false,
             sleep_time: 1800,
         }

@@ -174,7 +174,7 @@ pub fn get_next_animated_wallpaper(settings: &Settings, path: &Path) -> Option<P
             .expect("failed to convert file name to str")
             .chars()
             .rev()
-            .take_while(|c| c.is_digit(10))
+            .take_while(|c| c.is_ascii_digit())
             .collect::<String>()
             .chars()
             .rev()
