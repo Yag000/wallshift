@@ -2,6 +2,12 @@ use clap_derive::Parser;
 
 use crate::configuration::{get_configuration, Settings};
 
+pub enum Actions {
+    Launch,
+    Toggle,
+    Get,
+}
+
 #[derive(Parser)]
 pub struct Cli {
     /// Toggle wallpaper
@@ -26,7 +32,7 @@ pub struct Cli {
 }
 
 impl Cli {
-    pub fn get_seconds(&self) -> Option<u64> {
+    fn get_seconds(&self) -> Option<u64> {
         if let Some(seconds) = self.seconds {
             return Some(seconds);
         }
@@ -44,5 +50,16 @@ impl Cli {
         settings.betterlockscreen = self.betterlockscreen;
 
         settings
+    }
+
+    pub fn get_action(&self) -> Actions {
+        if self.toggle {
+            return Actions::Toggle;
+        }
+        if self.get {
+            return Actions::Get;
+        }
+
+        Actions::Launch
     }
 }

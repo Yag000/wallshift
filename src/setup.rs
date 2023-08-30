@@ -1,9 +1,22 @@
 use crate::{
+    cli::Actions,
     configuration::Settings,
     wallpaper::{get_next_wallpaper, update_wallpaper},
 };
 
-pub fn run(settings: Settings) {
-    let next_wallpaper = get_next_wallpaper(&settings);
-    update_wallpaper(&settings, next_wallpaper.to_str().unwrap());
+pub fn run(settings: Settings, action: Actions) {
+    match action {
+        Actions::Launch => {
+            todo!();
+        }
+        Actions::Toggle => {
+            let wallpaper = get_next_wallpaper(&settings);
+            let path = wallpaper.to_str().unwrap();
+            update_wallpaper(&settings, path);
+        }
+        Actions::Get => {
+            let wallpaper = get_next_wallpaper(&settings);
+            println!("{}", wallpaper.to_str().unwrap());
+        }
+    }
 }
