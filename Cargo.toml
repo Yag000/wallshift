@@ -9,6 +9,7 @@ edition = "2021"
 clap = "4.4.1"
 clap_derive = "4.4.0"
 config = "0.13.3"
+rand = "0.8.5"
 serde = "1.0.188"
 serde_derive = "1.0.188"
 

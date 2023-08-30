@@ -1,6 +1,6 @@
 #[derive(serde::Deserialize)]
 pub struct Settings {
-    pub wallpaper_folder: String,
+    pub wallpaper_dir: String,
     pub betterlockscreen: bool,
 }
 

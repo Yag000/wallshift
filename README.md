@@ -15,3 +15,8 @@ cp wallpaper-updater /usr/local/bin
 ## Dependencies
 
 The only main dependency for now is [feh](https://feh.finalrewind.org/), but in the future it will be possible to use other programs.
+
+
+## TODO
+
+- [ ] ignore hidden files
