@@ -1,6 +1,6 @@
-# Wallpaper-updater
+# wallshift
 
-Wallpaer-updater is a simple script that allows the user to have a wallpaper
+wallshift is a simple script that allows the user to have a wallpaper
 that changes whenever the user wants, it can be used to change the wallpaper
 every day, every hour, every minute, etc. It also allows the user to have an animated wallpaper.
 
