@@ -2,6 +2,13 @@
 name = "wallshift"
 version = "0.1.0"
 edition = "2021"
+authors = ["Yago Iglesias Vazquez  <yago.iglesias.vazquez@gmail.com>"]
+description = " Simple wallpaper updater using feh"
+readme = "README.md"
+homepage = "https://github.com/Yag000/wallshift"
+repository = "https://github.com/Yag000/wallshift"
+documentation = "https://github.com/Yag000/wallshift"
+keywords = ["wallpaper", "wallpaper-changer"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
