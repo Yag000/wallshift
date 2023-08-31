@@ -193,6 +193,7 @@ pub fn get_next_animated_wallpaper(settings: &Settings, path: &Path) -> Option<P
     )))
 }
 
+/// Gets the next wallpaper.
 pub fn get_next_wallpaper(settings: &Settings) -> PathBuf {
     let current_wallpaper = get_current_wallpaper();
     let new_wallpaper = get_random_wallpaper(settings)
@@ -240,5 +241,16 @@ pub fn update_wallpaper(settings: &Settings, path: &str) {
             .arg(path)
             .output()
             .expect("failed to call betterlockscreen");
+    }
+}
+
+pub fn get_sleep_time(settings: &Settings, path: &Path) -> u64 {
+    if is_animated_wallpaper(settings, path) {
+        let number_of_wallpapers = read_dir(path.parent().expect("failed to get parent directory"))
+            .expect("failed to open wallpaper directory")
+            .count();
+        settings.sleep_time / number_of_wallpapers as u64
+    } else {
+        settings.sleep_time
     }
 }
