@@ -1,0 +1,26 @@
+[package]
+name = "wallshift"
+version = "0.1.0"
+edition = "2021"
+authors = ["Yago Iglesias Vazquez  <yago.iglesias.vazquez@gmail.com>"]
+description = " Simple wallpaper updater using feh"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/Yag000/wallshift"
+repository = "https://github.com/Yag000/wallshift"
+documentation = "https://github.com/Yag000/wallshift"
+keywords = ["wallpaper", "wallpaper-changer"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "4.4.1"
+clap_derive = "4.4.0"
+config = "0.13.3"
+home = "0.5.5"
+rand = "0.8.5"
+serde = "1.0.188"
+serde_derive = "1.0.188"
+
+[lib]
+src = "src/lib.rs"
