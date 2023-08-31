@@ -1,4 +1,6 @@
-#[derive(serde::Deserialize)]
+use serde_derive::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
     pub wallpaper_dir: String,
     pub betterlockscreen: bool,
@@ -19,13 +21,12 @@ impl Default for Settings {
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    // TODO: Add more possible sources
-    // in particular $HOME/.config/wallpaper-updaterrc.yml
+    let config_path = format!(
+        "{}/.config/wallshift/config.yml",
+        home::home_dir().unwrap().to_str().unwrap()
+    );
     let settings = config::Config::builder()
-        .add_source(config::File::new(
-            "wallpaper-updaterrc.yml",
-            config::FileFormat::Yaml,
-        ))
+        .add_source(config::File::new(&config_path, config::FileFormat::Yaml))
         .build()?;
 
     settings.try_deserialize::<Settings>()
