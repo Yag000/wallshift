@@ -51,6 +51,7 @@ pub fn get_current_wallpaper() -> PathBuf {
 
 /// Gets a random wallpaper from the wallpaper directory.
 /// It can also return a folder, which will be handled by the caller.
+/// Hidden files will be ignored.
 ///
 /// # Panics
 ///
@@ -59,6 +60,41 @@ pub fn get_current_wallpaper() -> PathBuf {
 pub fn get_random_wallpaper(settings: &Settings) -> Option<PathBuf> {
     let files = read_dir(settings.wallpaper_dir.clone())
         .expect("failed to open wallpaper directory")
+        .filter(|entry| {
+            !entry
+                .as_ref()
+                .expect("failed to get entry")
+                .file_name()
+                .to_str()
+                .expect("failed to convert file name to str")
+                .starts_with('.')
+        })
+        .collect::<Vec<_>>();
+
+    if files.is_empty() {
+        return None;
+    }
+
+    let random_number = rand::thread_rng().gen_range(0..files.len());
+    Some(files.get(random_number).unwrap().as_ref().unwrap().path())
+}
+
+/// Gets a random wallpaper from the wallpaper directory.
+/// It will not return a folder.
+/// Hidden files will be ignored.
+///
+/// # Panics
+///
+/// Panics if the wallpaper directory does not exist.
+///
+pub fn get_random_wallpaper_file(settings: &Settings) -> Option<PathBuf> {
+    let files = read_dir(settings.wallpaper_dir.clone())
+        .expect("failed to open wallpaper directory")
+        // Filter out folders
+        .filter(|entry| {
+            let path = entry.as_ref().unwrap().path();
+            path.is_file() && !path.as_os_str().to_str().unwrap().starts_with('.')
+        })
         .collect::<Vec<_>>();
 
     if files.is_empty() {
@@ -101,28 +137,6 @@ pub fn is_animated_wallpaper(settings: &Settings, path: &Path) -> bool {
         }
     }
     false
-}
-
-/// Gets a random wallpaper from the wallpaper directory.
-/// It will not return a folder.
-///
-/// # Panics
-///
-/// Panics if the wallpaper directory does not exist.
-///
-pub fn get_random_wallpaper_file(settings: &Settings) -> Option<PathBuf> {
-    let files = read_dir(settings.wallpaper_dir.clone())
-        .expect("failed to open wallpaper directory")
-        // Filter out folders
-        .filter(|entry| entry.as_ref().unwrap().path().is_file())
-        .collect::<Vec<_>>();
-
-    if files.is_empty() {
-        return None;
-    }
-
-    let random_number = rand::thread_rng().gen_range(0..files.len());
-    Some(files.get(random_number).unwrap().as_ref().unwrap().path())
 }
 
 /// Gets the name of the folder that contains the given path.
