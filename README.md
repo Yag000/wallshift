@@ -68,6 +68,8 @@ wallpaper-dir
 |   |-- example3.png
 ```
 
+Hidden files (files starting with a dot) are ignored.
+
 ## Animated wallpapers
 
 ### What is an animated wallpaper?
@@ -79,7 +81,3 @@ images of a person walking or of pacman eating ghosts.
 Example:
 
 ![animated-wallpaper](ressources/demo-animated.gif)
-
-## TODO
-
-- [ ] Ignore hidden files.
