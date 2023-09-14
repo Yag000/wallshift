@@ -4,9 +4,12 @@
 that changes whenever the user wants. It can be used to change the wallpaper
 every day, every hour, every minute, etc. It also allows the user to have an animated wallpaper.
 
+When launching the program, it will create a daemon that will change the wallpaper. This insure that
+there is only one instance of the program running at a time.
+
 ## Dependencies
 
-The only dependency is [feh](https://feh.finalrewind.org/), but I'm planning to allow
+The only dependency, aside from rust libraries, is [feh](https://feh.finalrewind.org/), but I'm planning to allow
 the user to choose the program to set the wallpaper.
 
 ## Installation
