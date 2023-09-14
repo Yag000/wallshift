@@ -1,4 +1,6 @@
-use std::{thread, time::Duration};
+use std::{fs::File, thread, time::Duration};
+
+use daemonize::Daemonize;
 
 use crate::{
     cli::Actions,
@@ -8,13 +10,7 @@ use crate::{
 
 pub fn run(settings: Settings, action: Actions) {
     match action {
-        Actions::Launch => loop {
-            let wallpaper = get_next_wallpaper(&settings);
-            let path = wallpaper.to_str().unwrap();
-            update_wallpaper(&settings, path);
-            let sleep_time = get_sleep_time(&settings, &wallpaper);
-            thread::sleep(Duration::from_secs(sleep_time));
-        },
+        Actions::Launch => run_daemon(settings),
         Actions::Toggle => {
             let wallpaper = get_next_wallpaper(&settings);
             let path = wallpaper.to_str().unwrap();
@@ -24,5 +20,31 @@ pub fn run(settings: Settings, action: Actions) {
             let wallpaper = get_next_wallpaper(&settings);
             println!("{}", wallpaper.to_str().unwrap());
         }
+    }
+}
+
+fn run_daemon(settings: Settings) {
+    let stdout = File::create("/tmp/wallshift.out").unwrap();
+    let stderr = File::create("/tmp/wallshift.err").unwrap();
+
+    let daemonize = Daemonize::new()
+        .pid_file("/tmp/wallshift.pid")
+        .chown_pid_file(true)
+        .stdout(stdout) // Redirect stdout
+        .stderr(stderr); // Redirect stderr
+
+    match daemonize.start() {
+        Ok(_) => launch_wallpaper_loop(settings),
+        Err(e) => eprintln!("Error, {}", e),
+    }
+}
+
+fn launch_wallpaper_loop(settings: Settings) {
+    loop {
+        let wallpaper = get_next_wallpaper(&settings);
+        let path = wallpaper.to_str().unwrap();
+        update_wallpaper(&settings, path);
+        let sleep_time = get_sleep_time(&settings, &wallpaper);
+        thread::sleep(Duration::from_secs(sleep_time));
     }
 }

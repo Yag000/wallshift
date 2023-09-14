@@ -1,10 +1,9 @@
+use rand::Rng;
 use std::{
     fs::{read_dir, read_to_string},
     path::{Path, PathBuf},
     process::Command,
 };
-
-use rand::Rng;
 
 use crate::configuration::Settings;
 
