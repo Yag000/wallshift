@@ -43,11 +43,11 @@ wallshift [OPTIONS]
 ### Options
 
 - `-h`, `--help`: Prints help information
-- '-s', `--seconds`: Sets the time in seconds to change the wallpaper
-- '-m', `--minutes`: Sets the time in minutes to change the wallpaper
-- '-g', '--get': Gets the next wallpaper
-- '--betterlockscreen': Sets the betterlockscreen wallpaper as well
-- '-t', '--toggle': Changes once the wallpaper
+- `-s`, `--seconds`: Sets the time in seconds to change the wallpaper
+- `-m`, `--minutes`: Sets the time in minutes to change the wallpaper
+- `-g`, `--get`: Gets the next wallpaper
+- `--betterlockscreen`: Sets the betterlockscreen wallpaper as well
+- `-t`, `--toggle`: Changes once the wallpaper
 
 ### Wallpaper directory
 
