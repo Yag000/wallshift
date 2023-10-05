@@ -68,9 +68,7 @@ pub struct ImagePath {
 
 impl ImagePath {
     pub fn new(path: PathBuf) -> Option<Self> {
-        if !path.exists() {
-            None
-        } else if path.is_dir() {
+        if !path.exists() || path.is_dir() {
             None
         } else {
             let instance = Self {
@@ -218,7 +216,7 @@ struct AnimatedInfo {
 }
 
 impl AnimatedInfo {
-    fn new(path: &PathBuf) -> Self {
+    fn new(path: &Path) -> Self {
         let animated_folder = Self::update_animated_folder(path);
         let animated_number = Self::update_animated_number(path);
 
@@ -228,7 +226,7 @@ impl AnimatedInfo {
         }
     }
 
-    fn update_animated_folder(path: &PathBuf) -> String {
+    fn update_animated_folder(path: &Path) -> String {
         path.parent()
             .unwrap()
             .file_name()
@@ -238,7 +236,7 @@ impl AnimatedInfo {
             .to_owned()
     }
 
-    fn update_animated_number(path: &PathBuf) -> u32 {
+    fn update_animated_number(path: &Path) -> u32 {
         path.file_stem()
             .expect("failed to get file name")
             .to_str()
