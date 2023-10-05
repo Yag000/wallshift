@@ -5,6 +5,7 @@ use std::{
 
 use crate::configuration::Settings;
 
+/// A wrapper for a path that can be either a file or a folder.
 pub enum File {
     Image(ImagePath),
     Folder(AnimtaedFolder),
@@ -57,6 +58,8 @@ impl From<PathBuf> for File {
     }
 }
 
+/// A wrapper for a path that is a file.
+/// It can be either an animated wallpaper or a static wallpaper.
 pub struct ImagePath {
     path: PathBuf,
     animated_info: Option<AnimatedInfo>,
@@ -179,6 +182,7 @@ impl From<String> for ImagePath {
     }
 }
 
+/// A wrapper for a path that is a folder.
 pub struct AnimtaedFolder {
     path: PathBuf,
     name: String,
