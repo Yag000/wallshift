@@ -5,7 +5,7 @@ use daemonize::Daemonize;
 use crate::{
     cli::Actions,
     configuration::Settings,
-    wallpaper::{get_next_wallpaper, get_sleep_time, update_wallpaper},
+    wallpaper::{get_next_wallpaper, update_wallpaper},
 };
 
 pub fn run(settings: Settings, action: Actions) {
@@ -13,12 +13,12 @@ pub fn run(settings: Settings, action: Actions) {
         Actions::Launch => run_daemon(settings),
         Actions::Toggle => {
             let wallpaper = get_next_wallpaper(&settings);
-            let path = wallpaper.to_str().unwrap();
-            update_wallpaper(&settings, path);
+            let path = wallpaper.to_string();
+            update_wallpaper(&settings, &path);
         }
         Actions::Get => {
             let wallpaper = get_next_wallpaper(&settings);
-            println!("{}", wallpaper.to_str().unwrap());
+            println!("{}", wallpaper.to_string());
         }
     }
 }
@@ -41,10 +41,10 @@ fn run_daemon(settings: Settings) {
 
 fn launch_wallpaper_loop(settings: Settings) {
     loop {
-        let wallpaper = get_next_wallpaper(&settings);
-        let path = wallpaper.to_str().unwrap();
-        update_wallpaper(&settings, path);
-        let sleep_time = get_sleep_time(&settings, &wallpaper);
+        let mut wallpaper = get_next_wallpaper(&settings);
+        let path = wallpaper.to_string();
+        update_wallpaper(&settings, &path);
+        let sleep_time = wallpaper.get_sleep_time(&settings);
         thread::sleep(Duration::from_secs(sleep_time));
     }
 }
