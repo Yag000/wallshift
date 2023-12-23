@@ -14,7 +14,9 @@ pub fn run(settings: Settings, action: Actions) {
         Actions::Toggle => {
             let wallpaper = get_next_wallpaper(&settings);
             let path = wallpaper.to_string();
-            update_wallpaper(&settings, &path);
+            if let Err(err) = update_wallpaper(&settings, &path) {
+                eprintln!("Error, {}", err);
+            }
         }
         Actions::Get => {
             let wallpaper = get_next_wallpaper(&settings);
@@ -43,7 +45,10 @@ fn launch_wallpaper_loop(settings: Settings) {
     loop {
         let mut wallpaper = get_next_wallpaper(&settings);
         let path = wallpaper.to_string();
-        update_wallpaper(&settings, &path);
+        if let Err(err) = update_wallpaper(&settings, &path) {
+            eprintln!("Error, {}", err);
+        }
+
         let sleep_time = wallpaper.get_sleep_time(&settings);
         thread::sleep(Duration::from_secs(sleep_time));
     }
