@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     configuration::Settings,
-    error::*,
+    error::{ExecError, FileError, ParsingError, WallshiftError},
     path::{File, ImagePath},
 };
 
