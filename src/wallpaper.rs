@@ -191,32 +191,44 @@ pub fn update_animated(settings: &Settings, path: &File) -> Result<ImagePath, Wa
 /// Panics if the call to feh fails.
 /// Panics if the call to betterlockscreen fails.
 ///
-pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), WallshiftError> {
     // TODO: allow user to choose other wallpaper setter
-    Command::new("feh").arg("--bg-fill").arg(path).output()?;
+    Command::new("feh").arg("--bg-fill").arg(path).output().map_err(|err| {
+        Into::<WallshiftError>::into(ExecError {
+            message: format!("failed to update wallpaper: {err}"),
+        })
+    })?;
 
     // Updates the betterlockscreen wallpaper
     if settings.betterlockscreen {
         Command::new("betterlockscreen")
             .arg("-u")
             .arg(path)
-            .output()?;
+            .output().map_err(|err| {
+                Into::<WallshiftError>::into(ExecError {
+                    message: format!("failed to update betterlockscreen wallpaper: {err}"),
+                })
+            })?;
     }
 
     // Saves the current wallpaper
     //
-    let home = home::home_dir()
-        .ok_or("failed to get home directory")?
-        .to_str()
-        .ok_or("failed to convert home directory to str")?
-        .to_owned();
+    let home = get_home_dir()?;
 
-    std::fs::create_dir_all(format!("{home}/.local/share/wallshift"))?;
+    std::fs::create_dir_all(format!("{home}/.local/share/wallshift")).map_err(|err| {
+        Into::<WallshiftError>::into(FileError {
+            message: format!("failed to create wallshift directory: {err}"),
+        })
+    })?;
 
     std::fs::write(
         format!("{home}/.local/share/wallshift/.current_wallpaper",),
         path,
-    )?;
+    ).map_err(|err| {
+        Into::<WallshiftError>::into(FileError {
+            message: format!("failed to write current wallpaper: {err}"),
+        })
+    })?;
 
     Ok(())
 }
