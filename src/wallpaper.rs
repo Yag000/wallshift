@@ -1,6 +1,7 @@
 use rand::Rng;
 use std::{
     fs::{read_dir, read_to_string},
+    path::PathBuf,
     process::Command,
 };
 
@@ -86,19 +87,40 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError>
 
     let mut path = files.get(random_number).unwrap().as_ref().unwrap().path();
 
+    let get_path_str = |path: &PathBuf| -> Result<String, WallshiftError> {
+        path.to_str()
+            .ok_or(
+                ParsingError {
+                    message: "failed to convert path to str".to_owned(),
+                }
+                .into(),
+            )
+            .map(|path_str| path_str.to_owned())
+    };
+
     if let Ok(current_wallpaper) = get_current_wallpaper() {
         let current_wallpaper = current_wallpaper.to_string();
-        let path_str = path
-            .to_str()
-            .ok_or(ParsingError {
-                message: "failed to convert path to str".to_owned(),
-            })?
-            .to_owned();
-
-        while path_str == current_wallpaper && files_len > 1 {
-            random_number = rand::thread_rng().gen_range(0..files.len());
-            path = files.get(random_number).unwrap().as_ref().unwrap().path();
+        if files_len == 1 {
+            return File::new(path).ok_or(
+                FileError {
+                    message: "failed to get random wallpaper".to_owned(),
+                }
+                .into(),
+            );
         }
+
+        let files = files
+            .iter()
+            .filter(|entry| {
+                let entry = entry.as_ref().unwrap();
+                let entry_path = entry.path();
+                let entry_path_str = get_path_str(&entry_path).unwrap();
+                entry_path_str != current_wallpaper
+            })
+            .collect::<Vec<_>>();
+
+        random_number = rand::thread_rng().gen_range(0..files.len());
+        path = files.get(random_number).unwrap().as_ref().unwrap().path();
     }
 
     File::new(path).ok_or(
@@ -122,7 +144,7 @@ pub fn get_next_animated_wallpaper(
     match path {
         File::Image(img) => {
             let max_index = read_dir(format!("{}/{name}", settings.wallpaper_dir))
-                .map_err(|_|{ 
+                .map_err(|_|{
                     Into::<WallshiftError>::into(FileError {
                     message: "failed to open the animated wallpaper directory, it appears to be missing".to_owned(),
                 })})?
@@ -151,8 +173,7 @@ pub fn get_next_animated_wallpaper(
 
 /// Gets the next wallpaper.
 pub fn get_next_wallpaper(settings: &Settings) -> Result<ImagePath, WallshiftError> {
-    let mut current_wallpaper =
-        get_current_wallpaper().unwrap_or(get_random_wallpaper(settings)?);
+    let mut current_wallpaper = get_current_wallpaper().unwrap_or(get_random_wallpaper(settings)?);
     let mut new_wallpaper = get_random_wallpaper(settings)?;
     if current_wallpaper.is_animated(settings) {
         update_animated(settings, &current_wallpaper)
@@ -193,18 +214,23 @@ pub fn update_animated(settings: &Settings, path: &File) -> Result<ImagePath, Wa
 ///
 pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), WallshiftError> {
     // TODO: allow user to choose other wallpaper setter
-    Command::new("feh").arg("--bg-fill").arg(path).output().map_err(|err| {
-        Into::<WallshiftError>::into(ExecError {
-            message: format!("failed to update wallpaper: {err}"),
-        })
-    })?;
+    Command::new("feh")
+        .arg("--bg-fill")
+        .arg(path)
+        .output()
+        .map_err(|err| {
+            Into::<WallshiftError>::into(ExecError {
+                message: format!("failed to update wallpaper: {err}"),
+            })
+        })?;
 
     // Updates the betterlockscreen wallpaper
     if settings.betterlockscreen {
         Command::new("betterlockscreen")
             .arg("-u")
             .arg(path)
-            .output().map_err(|err| {
+            .output()
+            .map_err(|err| {
                 Into::<WallshiftError>::into(ExecError {
                     message: format!("failed to update betterlockscreen wallpaper: {err}"),
                 })
@@ -224,7 +250,8 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), Wallshift
     std::fs::write(
         format!("{home}/.local/share/wallshift/.current_wallpaper",),
         path,
-    ).map_err(|err| {
+    )
+    .map_err(|err| {
         Into::<WallshiftError>::into(FileError {
             message: format!("failed to write current wallpaper: {err}"),
         })
