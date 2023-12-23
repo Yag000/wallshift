@@ -52,7 +52,14 @@ fn launch_wallpaper_loop(settings: Settings) {
                     eprintln!("Error, {}", err);
                     thread::sleep(Duration::from_secs(settings.sleep_time));
                 } else {
-                    let sleep_time = wallpaper.get_sleep_time(&settings);
+                    let sleep_time = match wallpaper.get_sleep_time(&settings) {
+                        Ok(seconds) => seconds,
+                        Err(err) => {
+                            eprintln!("Error, {}", err);
+                            settings.sleep_time
+                        }
+                    };
+
                     thread::sleep(Duration::from_secs(sleep_time));
                 }
             }

@@ -3,7 +3,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::configuration::Settings;
+use crate::{
+    configuration::Settings,
+    error::{FileError, WallshiftError},
+};
 
 /// A wrapper for a path that can be either a file or a folder.
 pub enum File {
@@ -166,15 +169,25 @@ impl ImagePath {
         &self.path
     }
 
-    pub fn get_sleep_time(&mut self, settings: &Settings) -> u64 {
+    pub fn get_sleep_time(&mut self, settings: &Settings) -> Result<u64, WallshiftError> {
         if self.is_animated(settings) {
-            let number_of_wallpapers =
-                read_dir(self.path.parent().expect("failed to get parent directory"))
-                    .expect("failed to open wallpaper directory")
-                    .count();
-            settings.sleep_time / number_of_wallpapers as u64
+            let parent_path =
+                self.path
+                    .parent()
+                    .ok_or(Into::<WallshiftError>::into(FileError {
+                        message: "failed to get parent directory of the animated walpaper"
+                            .to_owned(),
+                    }))?;
+
+            let number_of_wallpapers = read_dir(parent_path).map_err(|_| { 
+                Into::<WallshiftError>::into(FileError {
+                    message: "failed to open the animated wallpaper directory, it appears to be missing".to_owned(),
+                })})?
+                .count();
+
+            Ok(settings.sleep_time / number_of_wallpapers as u64)
         } else {
-            settings.sleep_time
+            Ok(settings.sleep_time)
         }
     }
 }
@@ -187,7 +200,6 @@ impl ToString for ImagePath {
 
 impl From<String> for ImagePath {
     fn from(path: String) -> Self {
-        //TODO:
         Self::new(PathBuf::from(path)).unwrap()
     }
 }
