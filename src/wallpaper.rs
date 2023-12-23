@@ -190,13 +190,9 @@ pub fn update_animated(settings: &Settings, path: &File) -> ImagePath {
 /// Panics if the call to feh fails.
 /// Panics if the call to betterlockscreen fails.
 ///
-pub fn update_wallpaper(settings: &Settings, path: &str) {
+pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // TODO: allow user to choose other wallpaper setter
-    Command::new("feh")
-        .arg("--bg-fill")
-        .arg(path)
-        .output()
-        .expect("failed to call feh");
+    Command::new("feh").arg("--bg-fill").arg(path).output()?;
 
     // Updates the betterlockscreen wallpaper
     if settings.betterlockscreen {
@@ -208,19 +204,19 @@ pub fn update_wallpaper(settings: &Settings, path: &str) {
     }
 
     // Saves the current wallpaper
+    //
+    let home = home::home_dir()
+        .ok_or("failed to get home directory")?
+        .to_str()
+        .ok_or("failed to convert home directory to str")?
+        .to_owned();
 
-    std::fs::create_dir_all(format!(
-        "{}/.local/share/wallshift",
-        home::home_dir().unwrap().to_str().unwrap()
-    ))
-    .expect("failed to create directory");
+    std::fs::create_dir_all(format!("{home}/.local/share/wallshift"))?;
 
     std::fs::write(
-        format!(
-            "{}/.local/share/wallshift/.current_wallpaper",
-            home::home_dir().unwrap().to_str().unwrap()
-        ),
+        format!("{home}/.local/share/wallshift/.current_wallpaper",),
         path,
-    )
-    .expect("failed to save current wallpaper");
+    )?;
+
+    Ok(())
 }
