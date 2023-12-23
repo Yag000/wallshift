@@ -43,19 +43,6 @@ impl Display for FileError {
     }
 }
 
-impl From<String> for FileError {
-    fn from(message: String) -> Self {
-        FileError { message }
-    }
-}
-impl From<&str> for FileError {
-    fn from(message: &str) -> Self {
-        FileError {
-            message: message.to_owned(),
-        }
-    }
-}
-
 #[derive(Error, Debug)]
 pub struct ExecError {
     pub message: String,
