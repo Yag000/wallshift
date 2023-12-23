@@ -46,15 +46,27 @@ impl ToString for File {
     }
 }
 
-impl From<String> for File {
-    fn from(path: String) -> Self {
-        File::new(PathBuf::from(path)).unwrap()
+impl TryFrom<String> for crate::path::File {
+    type Error = &'static str;
+
+    fn try_from(path: String) -> Result<Self, Self::Error> {
+        if let Some(file) = File::new(PathBuf::from(path)) {
+            Ok(file)
+        } else {
+            Err("failed to create file")
+        }
     }
 }
 
-impl From<PathBuf> for File {
-    fn from(path: PathBuf) -> Self {
-        File::new(path).unwrap()
+impl TryFrom<PathBuf> for File {
+    type Error = &'static str;
+
+    fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
+        if let Some(file) = File::new(path) {
+            Ok(file)
+        } else {
+            Err("failed to create file")
+        }
     }
 }
 

@@ -25,7 +25,7 @@ use crate::{
 ///
 /// Panics if the file $HOME/.fehbg does not exist.
 ///
-pub fn get_current_wallpaper() -> File {
+pub fn get_current_wallpaper() -> Option<File> {
     let feh_raw = read_to_string(format!(
         "{}/.fehbg",
         home::home_dir()
@@ -48,7 +48,7 @@ pub fn get_current_wallpaper() -> File {
         .trim_matches('\'')
         .to_string();
 
-    File::from(wallpaper_path)
+    File::try_from(wallpaper_path).ok()
 }
 
 /// Gets a random wallpaper from the wallpaper directory.
@@ -73,12 +73,24 @@ pub fn get_random_wallpaper(settings: &Settings) -> Option<File> {
         })
         .collect::<Vec<_>>();
 
-    if files.is_empty() {
+    let files_len = files.len();
+
+    if files_len == 0 {
         return None;
     }
 
-    let random_number = rand::thread_rng().gen_range(0..files.len());
-    let path = files.get(random_number).unwrap().as_ref().unwrap().path();
+    let mut random_number = rand::thread_rng().gen_range(0..files.len());
+
+    let mut path = files.get(random_number).unwrap().as_ref().unwrap().path();
+
+    if let Some(current_wallpaper) = get_current_wallpaper() {
+        let current_wallpaper = current_wallpaper.to_string();
+        while *path.to_str()? == current_wallpaper && files_len > 1 {
+            random_number = rand::thread_rng().gen_range(0..files.len());
+            path = files.get(random_number).unwrap().as_ref().unwrap().path();
+        }
+    }
+
     File::new(path)
 }
 
@@ -151,7 +163,8 @@ pub fn get_next_animated_wallpaper(settings: &Settings, path: &File) -> Option<I
 
 /// Gets the next wallpaper.
 pub fn get_next_wallpaper(settings: &Settings) -> ImagePath {
-    let mut current_wallpaper = get_current_wallpaper();
+    let mut current_wallpaper =
+        get_current_wallpaper().unwrap_or(get_random_wallpaper(settings).unwrap());
     let mut new_wallpaper = get_random_wallpaper(settings)
         .expect("failed to get random wallpaper, not enough wallpapers in the wallpaper directory");
     if current_wallpaper.is_animated(settings) {
@@ -171,9 +184,17 @@ pub fn update_animated(settings: &Settings, path: &File) -> ImagePath {
     if let Some(next_wallpaper) = next_wallpaper {
         next_wallpaper
     } else {
-        get_random_wallpaper_file(settings).expect(
+        let mut new_random = get_random_wallpaper(settings).expect(
             "failed to get random wallpaper, not enough wallpapers in the wallpaper directory",
-        )
+        );
+        if new_random.is_animated(settings) {
+            update_animated(settings, &new_random)
+        } else {
+            match new_random {
+                File::Image(img) => img,
+                File::Folder(_) => unreachable!(),
+            }
+        }
     }
 }
 
