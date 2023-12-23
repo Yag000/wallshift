@@ -55,9 +55,13 @@ pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
 /// It can also return a folder, which will be handled by the caller.
 /// Hidden files will be ignored.
 pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError> {
-    // TODO: Fix this and improve error handling
     let files = read_dir(settings.wallpaper_dir.clone())
-        .expect("failed to open wallpaper directory")
+        .map_err(|_| {
+            Into::<WallshiftError>::into(FileError {
+                message: "failed to open the wallpaper directory, it appears to be missing"
+                    .to_owned(),
+            })
+        })?
         .filter(|entry| {
             !entry
                 .as_ref()
@@ -125,7 +129,9 @@ pub fn get_next_animated_wallpaper(
                 .count();
 
             // Get the last numbers of the name
-            let last_numbers = img.get_animated_number().unwrap();
+            let last_numbers = img.get_animated_number().ok_or(ParsingError {
+                message: "failed to get last numbers of animated wallpaper name".to_owned(),
+            })?;
             next_index = last_numbers + 1;
             if next_index > max_index as u32 {
                 return Ok(None);
@@ -146,9 +152,8 @@ pub fn get_next_animated_wallpaper(
 /// Gets the next wallpaper.
 pub fn get_next_wallpaper(settings: &Settings) -> Result<ImagePath, WallshiftError> {
     let mut current_wallpaper =
-        get_current_wallpaper().unwrap_or(get_random_wallpaper(settings).unwrap());
-    let mut new_wallpaper = get_random_wallpaper(settings)
-        .expect("failed to get random wallpaper, not enough wallpapers in the wallpaper directory");
+        get_current_wallpaper().unwrap_or(get_random_wallpaper(settings)?);
+    let mut new_wallpaper = get_random_wallpaper(settings)?;
     if current_wallpaper.is_animated(settings) {
         update_animated(settings, &current_wallpaper)
     } else if new_wallpaper.is_animated(settings) {
@@ -166,9 +171,7 @@ pub fn update_animated(settings: &Settings, path: &File) -> Result<ImagePath, Wa
     if let Some(next_wallpaper) = next_wallpaper {
         Ok(next_wallpaper)
     } else {
-        let mut new_random = get_random_wallpaper(settings).expect(
-            "failed to get random wallpaper, not enough wallpapers in the wallpaper directory",
-        );
+        let mut new_random = get_random_wallpaper(settings)?;
         if new_random.is_animated(settings) {
             update_animated(settings, &new_random)
         } else {
@@ -197,8 +200,7 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), Box<dyn s
         Command::new("betterlockscreen")
             .arg("-u")
             .arg(path)
-            .output()
-            .expect("failed to call betterlockscreen");
+            .output()?;
     }
 
     // Saves the current wallpaper
