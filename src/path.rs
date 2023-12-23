@@ -179,7 +179,7 @@ impl ImagePath {
                             .to_owned(),
                     }))?;
 
-            let number_of_wallpapers = read_dir(parent_path).map_err(|_| { 
+            let number_of_wallpapers = read_dir(parent_path).map_err(|_| {
                 Into::<WallshiftError>::into(FileError {
                     message: "failed to open the animated wallpaper directory, it appears to be missing".to_owned(),
                 })})?
