@@ -34,11 +34,6 @@ fn get_home_dir() -> Result<String, WallshiftError> {
 /// feh --no-fehbg --bg-fill /path/to/wallpaper
 ///
 /// This function parses the .fehbg file and returns the path to the current wallpaper.
-///
-/// # Panics
-///
-/// Panics if the file $HOME/.fehbg does not exist.
-///
 pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
     let wallpaper_path = read_to_string(format!(
         "{}/.local/share/wallshift/.current_wallpaper",
@@ -59,12 +54,8 @@ pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
 /// Gets a random wallpaper from the wallpaper directory.
 /// It can also return a folder, which will be handled by the caller.
 /// Hidden files will be ignored.
-///
-/// # Panics
-///
-/// Panics if the wallpaper directory does not exist.
-///
 pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError> {
+    // TODO: Fix this and improve error handling
     let files = read_dir(settings.wallpaper_dir.clone())
         .expect("failed to open wallpaper directory")
         .filter(|entry| {
@@ -118,27 +109,26 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError>
 /// If the path is a folder it will return the first wallpaper in the folder.
 /// If the path is a file it will return the next wallpaper in the folder.
 /// If the path is the last wallpaper in the folder it will return None.
-///
-/// # Panics
-///
-/// Panics if the path is not an animated wallpaper.
-/// Panics if the wallpaper directory does not exist.
-/// Panics if the path is not a valid path.
-/// Panics if the name does not contain a number at the end.
-pub fn get_next_animated_wallpaper(settings: &Settings, path: &File) -> Option<ImagePath> {
+pub fn get_next_animated_wallpaper(
+    settings: &Settings,
+    path: &File,
+) -> Result<Option<ImagePath>, WallshiftError> {
     let name = path.get_animated_wallpaper_name();
     let next_index;
     match path {
         File::Image(img) => {
             let max_index = read_dir(format!("{}/{name}", settings.wallpaper_dir))
-                .expect("failed to open wallpaper directory")
+                .map_err(|_|{ 
+                    Into::<WallshiftError>::into(FileError {
+                    message: "failed to open the animated wallpaper directory, it appears to be missing".to_owned(),
+                })})?
                 .count();
 
             // Get the last numbers of the name
             let last_numbers = img.get_animated_number().unwrap();
             next_index = last_numbers + 1;
             if next_index > max_index as u32 {
-                return None;
+                return Ok(None);
             }
         }
         File::Folder(_) => {
@@ -147,14 +137,14 @@ pub fn get_next_animated_wallpaper(settings: &Settings, path: &File) -> Option<I
     }
 
     //TODO: Add support for other file formats
-    Some(ImagePath::from(format!(
+    Ok(Some(ImagePath::from(format!(
         "{}/{name}/{name}{}.png",
         settings.wallpaper_dir, next_index
-    )))
+    ))))
 }
 
 /// Gets the next wallpaper.
-pub fn get_next_wallpaper(settings: &Settings) -> ImagePath {
+pub fn get_next_wallpaper(settings: &Settings) -> Result<ImagePath, WallshiftError> {
     let mut current_wallpaper =
         get_current_wallpaper().unwrap_or(get_random_wallpaper(settings).unwrap());
     let mut new_wallpaper = get_random_wallpaper(settings)
@@ -165,16 +155,16 @@ pub fn get_next_wallpaper(settings: &Settings) -> ImagePath {
         update_animated(settings, &new_wallpaper)
     } else {
         match new_wallpaper {
-            File::Image(img) => img,
+            File::Image(img) => Ok(img),
             File::Folder(_) => unreachable!(),
         }
     }
 }
 
-pub fn update_animated(settings: &Settings, path: &File) -> ImagePath {
-    let next_wallpaper = get_next_animated_wallpaper(settings, path);
+pub fn update_animated(settings: &Settings, path: &File) -> Result<ImagePath, WallshiftError> {
+    let next_wallpaper = get_next_animated_wallpaper(settings, path)?;
     if let Some(next_wallpaper) = next_wallpaper {
-        next_wallpaper
+        Ok(next_wallpaper)
     } else {
         let mut new_random = get_random_wallpaper(settings).expect(
             "failed to get random wallpaper, not enough wallpapers in the wallpaper directory",
@@ -183,7 +173,7 @@ pub fn update_animated(settings: &Settings, path: &File) -> ImagePath {
             update_animated(settings, &new_random)
         } else {
             match new_random {
-                File::Image(img) => img,
+                File::Image(img) => Ok(img),
                 File::Folder(_) => unreachable!(),
             }
         }

@@ -11,17 +11,19 @@ use crate::{
 pub fn run(settings: Settings, action: Actions) {
     match action {
         Actions::Launch => run_daemon(settings),
-        Actions::Toggle => {
-            let wallpaper = get_next_wallpaper(&settings);
-            let path = wallpaper.to_string();
-            if let Err(err) = update_wallpaper(&settings, &path) {
-                eprintln!("Error, {}", err);
+        Actions::Toggle => match get_next_wallpaper(&settings) {
+            Ok(wallpaper) => {
+                let path = wallpaper.to_string();
+                if let Err(err) = update_wallpaper(&settings, &path) {
+                    eprintln!("Error, {}", err);
+                }
             }
-        }
-        Actions::Get => {
-            let wallpaper = get_next_wallpaper(&settings);
-            println!("{}", wallpaper.to_string());
-        }
+            Err(err) => eprintln!("Error, {}", err),
+        },
+        Actions::Get => match get_next_wallpaper(&settings) {
+            Ok(wallpaper) => println!("{}", wallpaper.to_string()),
+            Err(err) => eprintln!("Error, {}", err),
+        },
     }
 }
 
@@ -43,13 +45,18 @@ fn run_daemon(settings: Settings) {
 
 fn launch_wallpaper_loop(settings: Settings) {
     loop {
-        let mut wallpaper = get_next_wallpaper(&settings);
-        let path = wallpaper.to_string();
-        if let Err(err) = update_wallpaper(&settings, &path) {
-            eprintln!("Error, {}", err);
+        match get_next_wallpaper(&settings) {
+            Ok(mut wallpaper) => {
+                let path = wallpaper.to_string();
+                if let Err(err) = update_wallpaper(&settings, &path) {
+                    eprintln!("Error, {}", err);
+                    thread::sleep(Duration::from_secs(settings.sleep_time));
+                } else {
+                    let sleep_time = wallpaper.get_sleep_time(&settings);
+                    thread::sleep(Duration::from_secs(sleep_time));
+                }
+            }
+            Err(err) => eprintln!("Error, {}", err),
         }
-
-        let sleep_time = wallpaper.get_sleep_time(&settings);
-        thread::sleep(Duration::from_secs(sleep_time));
     }
 }
