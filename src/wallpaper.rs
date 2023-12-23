@@ -114,34 +114,6 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError>
     )
 }
 
-/// Gets a random wallpaper from the wallpaper directory.
-/// It will not return a folder.
-/// Hidden files will be ignored.
-///
-/// # Panics
-///
-/// Panics if the wallpaper directory does not exist.
-///
-pub fn get_random_wallpaper_file(settings: &Settings) -> Option<ImagePath> {
-    let files = read_dir(settings.wallpaper_dir.clone())
-        .expect("failed to open wallpaper directory")
-        // Filter out folders
-        .filter(|entry| {
-            let path = entry.as_ref().unwrap().path();
-            path.is_file() && !path.as_os_str().to_str().unwrap().starts_with('.')
-        })
-        .collect::<Vec<_>>();
-
-    if files.is_empty() {
-        return None;
-    }
-
-    let random_number = rand::thread_rng().gen_range(0..files.len());
-
-    let path = files.get(random_number).unwrap().as_ref().unwrap().path();
-    ImagePath::new(path)
-}
-
 /// Returns a path to the next animated wallpaper.
 /// If the path is a folder it will return the first wallpaper in the folder.
 /// If the path is a file it will return the next wallpaper in the folder.
