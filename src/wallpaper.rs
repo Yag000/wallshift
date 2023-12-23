@@ -26,27 +26,11 @@ use crate::{
 /// Panics if the file $HOME/.fehbg does not exist.
 ///
 pub fn get_current_wallpaper() -> Option<File> {
-    let feh_raw = read_to_string(format!(
-        "{}/.fehbg",
-        home::home_dir()
-            .expect("Unable to get home path")
-            .to_str()
-            .unwrap()
+    let wallpaper_path = read_to_string(format!(
+        "{}/.local/share/wallshift/.current_wallpaper",
+        home::home_dir()?.to_str()?
     ))
-    .expect("failed to open .fehbg file");
-
-    let wallpaper_path = feh_raw
-        .lines()
-        // We take the second line because the first line is the shebang
-        .nth(1)
-        .expect("failed to parse .fehbg file, it should contain at least 2 lines")
-        // We take the last word
-        .split(' ')
-        .nth(3)
-        .expect("failed to parse .fehbg file, it should contain at least 4 words")
-        // Remove the single quotes
-        .trim_matches('\'')
-        .to_string();
+    .ok()?;
 
     File::try_from(wallpaper_path).ok()
 }
@@ -222,4 +206,21 @@ pub fn update_wallpaper(settings: &Settings, path: &str) {
             .output()
             .expect("failed to call betterlockscreen");
     }
+
+    // Saves the current wallpaper
+
+    std::fs::create_dir_all(format!(
+        "{}/.local/share/wallshift",
+        home::home_dir().unwrap().to_str().unwrap()
+    ))
+    .expect("failed to create directory");
+
+    std::fs::write(
+        format!(
+            "{}/.local/share/wallshift/.current_wallpaper",
+            home::home_dir().unwrap().to_str().unwrap()
+        ),
+        path,
+    )
+    .expect("failed to save current wallpaper");
 }
