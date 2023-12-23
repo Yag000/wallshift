@@ -83,7 +83,7 @@ pub fn get_random_wallpaper(settings: &Settings) -> Option<File> {
 
     if let Some(current_wallpaper) = get_current_wallpaper() {
         let current_wallpaper = current_wallpaper.to_string();
-        while path.to_str()?.to_owned() == current_wallpaper && files.len() > 1 {
+        while *path.to_str()? == current_wallpaper && files.len() > 1 {
             random_number = rand::thread_rng().gen_range(0..files.len());
             path = files.get(random_number).unwrap().as_ref().unwrap().path();
         }
