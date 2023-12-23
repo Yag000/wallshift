@@ -63,29 +63,30 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError>
                     .to_owned(),
             })
         })?
-        .filter(|entry| {
-            !entry
-                .as_ref()
-                .expect("failed to get entry")
-                .file_name()
-                .to_str()
-                .expect("failed to convert file name to str")
-                .starts_with('.')
+        .filter_map(|entry| {
+            if let Ok(entry) = entry {
+                if !entry
+                    .file_name()
+                    .to_str()
+                    .expect("failed to convert file name to str")
+                    .starts_with('.')
+                {
+                    Some(entry)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
         })
         .collect::<Vec<_>>();
 
-    let files_len = files.len();
-
-    if files_len == 0 {
+    if files.is_empty() {
         return Err(FileError {
             message: "no wallpapers in the wallpaper directory".to_owned(),
         }
         .into());
     }
-
-    let mut random_number = rand::thread_rng().gen_range(0..files.len());
-
-    let mut path = files.get(random_number).unwrap().as_ref().unwrap().path();
 
     let get_path_str = |path: &PathBuf| -> Result<String, WallshiftError> {
         path.to_str()
@@ -98,30 +99,23 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError>
             .map(|path_str| path_str.to_owned())
     };
 
-    if let Ok(current_wallpaper) = get_current_wallpaper() {
-        let current_wallpaper = current_wallpaper.to_string();
-        if files_len == 1 {
-            return File::new(path).ok_or(
-                FileError {
-                    message: "failed to get random wallpaper".to_owned(),
-                }
-                .into(),
-            );
-        }
-
+    let path = if let Ok(current_wallpaper) = get_current_wallpaper() {
+        let current_wallpaper_str = current_wallpaper.to_string();
         let files = files
             .iter()
             .filter(|entry| {
-                let entry = entry.as_ref().unwrap();
                 let entry_path = entry.path();
                 let entry_path_str = get_path_str(&entry_path).unwrap();
-                entry_path_str != current_wallpaper
+                entry_path_str != current_wallpaper_str
             })
             .collect::<Vec<_>>();
 
-        random_number = rand::thread_rng().gen_range(0..files.len());
-        path = files.get(random_number).unwrap().as_ref().unwrap().path();
-    }
+        let random_number = rand::thread_rng().gen_range(0..files.len());
+        files.get(random_number).unwrap().path()
+    } else {
+        let random_number = rand::thread_rng().gen_range(0..files.len());
+        files.get(random_number).unwrap().path()
+    };
 
     File::new(path).ok_or(
         FileError {
