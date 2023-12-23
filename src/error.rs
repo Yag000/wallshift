@@ -1,7 +1,4 @@
-use std::{
-    fmt::{Display, Formatter},
-    path::PathBuf,
-};
+use std::fmt::{Display, Formatter};
 
 use thiserror::Error;
 
@@ -35,14 +32,6 @@ impl Display for ParsingError {
     }
 }
 
-impl Into<ParsingError> for std::io::Error {
-    fn into(self) -> ParsingError {
-        ParsingError {
-            message: format!("failed to parse: {}", self),
-        }
-    }
-}
-
 #[derive(Error, Debug)]
 pub struct FileError {
     pub message: String,
@@ -54,25 +43,15 @@ impl Display for FileError {
     }
 }
 
-impl Into<FileError> for Option<PathBuf> {
-    fn into(self) -> FileError {
-        FileError {
-            message: format!("failed to get path from option: {:?}", self),
-        }
+impl From<String> for FileError {
+    fn from(message: String) -> Self {
+        FileError { message }
     }
 }
-
-impl Into<FileError> for String {
-    fn into(self) -> FileError {
+impl From<&str> for FileError {
+    fn from(message: &str) -> Self {
         FileError {
-            message: format!("failed to get path from string: {:?}", self),
-        }
-    }
-}
-impl Into<FileError> for &str {
-    fn into(self) -> FileError {
-        FileError {
-            message: format!("failed to get path from string: {:?}", self),
+            message: message.to_owned(),
         }
     }
 }
