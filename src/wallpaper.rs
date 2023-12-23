@@ -64,7 +64,7 @@ pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
 ///
 /// Panics if the wallpaper directory does not exist.
 ///
-pub fn get_random_wallpaper(settings: &Settings) -> Option<File> {
+pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError> {
     let files = read_dir(settings.wallpaper_dir.clone())
         .expect("failed to open wallpaper directory")
         .filter(|entry| {
@@ -81,7 +81,10 @@ pub fn get_random_wallpaper(settings: &Settings) -> Option<File> {
     let files_len = files.len();
 
     if files_len == 0 {
-        return None;
+        return Err(FileError {
+            message: "no wallpapers in the wallpaper directory".to_owned(),
+        }
+        .into());
     }
 
     let mut random_number = rand::thread_rng().gen_range(0..files.len());
@@ -90,13 +93,25 @@ pub fn get_random_wallpaper(settings: &Settings) -> Option<File> {
 
     if let Ok(current_wallpaper) = get_current_wallpaper() {
         let current_wallpaper = current_wallpaper.to_string();
-        while *path.to_str()? == current_wallpaper && files_len > 1 {
+        let path_str = path
+            .to_str()
+            .ok_or(ParsingError {
+                message: "failed to convert path to str".to_owned(),
+            })?
+            .to_owned();
+
+        while path_str == current_wallpaper && files_len > 1 {
             random_number = rand::thread_rng().gen_range(0..files.len());
             path = files.get(random_number).unwrap().as_ref().unwrap().path();
         }
     }
 
-    File::new(path)
+    File::new(path).ok_or(
+        FileError {
+            message: "failed to get random wallpaper".to_owned(),
+        }
+        .into(),
+    )
 }
 
 /// Gets a random wallpaper from the wallpaper directory.
