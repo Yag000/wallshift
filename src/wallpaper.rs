@@ -6,8 +6,22 @@ use std::{
 
 use crate::{
     configuration::Settings,
+    error::*,
     path::{File, ImagePath},
 };
+
+fn get_home_dir() -> Result<String, WallshiftError> {
+    let home = home::home_dir()
+        .ok_or(FileError {
+            message: "failed to get home directory".to_owned(),
+        })?
+        .to_str()
+        .ok_or(ParsingError {
+            message: "failed to convert home directory to str".to_owned(),
+        })?
+        .to_owned();
+    Ok(home)
+}
 
 /// Gets the current wallpaper. It assumes that the user is only using feh to set the wallpaper.
 /// TODO: allow user to choose other wallpaper setter
@@ -25,14 +39,21 @@ use crate::{
 ///
 /// Panics if the file $HOME/.fehbg does not exist.
 ///
-pub fn get_current_wallpaper() -> Option<File> {
+pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
     let wallpaper_path = read_to_string(format!(
         "{}/.local/share/wallshift/.current_wallpaper",
-        home::home_dir()?.to_str()?
+        get_home_dir()?
     ))
-    .ok()?;
+    .map_err(|msg| FileError {
+        message: format!("failed to get current wallpaper: {msg}"),
+    })?;
 
-    File::try_from(wallpaper_path).ok()
+    File::try_from(wallpaper_path).map_err(|msg| {
+        FileError {
+            message: format!("failed to get current wallpaper: {msg}"),
+        }
+        .into()
+    })
 }
 
 /// Gets a random wallpaper from the wallpaper directory.
@@ -67,7 +88,7 @@ pub fn get_random_wallpaper(settings: &Settings) -> Option<File> {
 
     let mut path = files.get(random_number).unwrap().as_ref().unwrap().path();
 
-    if let Some(current_wallpaper) = get_current_wallpaper() {
+    if let Ok(current_wallpaper) = get_current_wallpaper() {
         let current_wallpaper = current_wallpaper.to_string();
         while *path.to_str()? == current_wallpaper && files_len > 1 {
             random_number = rand::thread_rng().gen_range(0..files.len());
