@@ -1,4 +1,5 @@
 use std::{
+    fmt::Display,
     fs::read_dir,
     path::{Path, PathBuf},
 };
@@ -40,11 +41,11 @@ impl File {
     }
 }
 
-impl ToString for File {
-    fn to_string(&self) -> String {
+impl Display for File {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Image(image) => image.to_string(),
-            Self::Folder(folder) => folder.to_string(),
+            Self::Image(image) => write!(f, "{}", image),
+            Self::Folder(folder) => write!(f, "{}", folder),
         }
     }
 }
@@ -192,9 +193,9 @@ impl ImagePath {
     }
 }
 
-impl ToString for ImagePath {
-    fn to_string(&self) -> String {
-        self.path.to_str().unwrap().to_owned()
+impl Display for ImagePath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.path.to_str().unwrap())
     }
 }
 
@@ -228,9 +229,9 @@ impl AnimtaedFolder {
     }
 }
 
-impl ToString for AnimtaedFolder {
-    fn to_string(&self) -> String {
-        self.path.to_str().unwrap().to_owned()
+impl Display for AnimtaedFolder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.path.to_str().unwrap())
     }
 }
 

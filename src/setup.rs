@@ -21,7 +21,7 @@ pub fn run(settings: Settings, action: Actions) {
             Err(err) => eprintln!("Error, {}", err),
         },
         Actions::Get => match get_next_wallpaper(&settings) {
-            Ok(wallpaper) => println!("{}", wallpaper.to_string()),
+            Ok(wallpaper) => println!("{}", wallpaper),
             Err(err) => eprintln!("Error, {}", err),
         },
     }
