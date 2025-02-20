@@ -4,10 +4,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{
-    configuration::Settings,
-    error::{FileError, WallshiftError},
-};
+use anyhow::{anyhow, Result};
+
+use crate::configuration::Settings;
 
 /// A wrapper for a path that can be either a file or a folder.
 pub enum File {
@@ -170,20 +169,18 @@ impl ImagePath {
         &self.path
     }
 
-    pub fn get_sleep_time(&mut self, settings: &Settings) -> Result<u64, WallshiftError> {
+    pub fn get_sleep_time(&mut self, settings: &Settings) -> Result<u64> {
         if self.is_animated(settings) {
-            let parent_path =
-                self.path
-                    .parent()
-                    .ok_or(Into::<WallshiftError>::into(FileError {
-                        message: "failed to get parent directory of the animated walpaper"
-                            .to_owned(),
-                    }))?;
+            let parent_path = self.path.parent().ok_or(anyhow!(
+                "failed to get parent directory of the animated walpaper"
+            ))?;
 
-            let number_of_wallpapers = read_dir(parent_path).map_err(|_| {
-                Into::<WallshiftError>::into(FileError {
-                    message: "failed to open the animated wallpaper directory, it appears to be missing".to_owned(),
-                })})?
+            let number_of_wallpapers = read_dir(parent_path)
+                .map_err(|_| {
+                    anyhow!(
+                        "failed to open the animated wallpaper directory, it appears to be missing"
+                    )
+                })?
                 .count();
 
             Ok(settings.sleep_time / number_of_wallpapers as u64)
