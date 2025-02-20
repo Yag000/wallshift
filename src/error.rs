@@ -9,11 +9,13 @@ pub enum WallshiftError {
         #[from]
         source: ParsingError,
     },
+
     #[error("File error")]
     File {
         #[from]
         source: FileError,
     },
+
     #[error("Exec error")]
     Exec {
         #[from]

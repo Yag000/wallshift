@@ -11,6 +11,16 @@ use crate::{
     path::{File, ImagePath},
 };
 
+const WALLSHIFT_DIR: &str = ".local/share/wallshift";
+
+/// Returns the path to the current wallpaper information file
+fn get_wallpaper_info_path() -> Result<String, WallshiftError> {
+    Ok(format!(
+        "{}/{WALLSHIFT_DIR}/.current_wallpaper",
+        get_home_dir()?,
+    ))
+}
+
 fn get_home_dir() -> Result<String, WallshiftError> {
     let home = home::home_dir()
         .ok_or(FileError {
@@ -26,15 +36,15 @@ fn get_home_dir() -> Result<String, WallshiftError> {
 
 /// Gets the current wallpaper that has been stored on a particular config file.
 pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
-    let wallpaper_path = read_to_string(format!(
-        "{}/.local/share/wallshift/.current_wallpaper",
-        get_home_dir()?
-    ))
-    .map_err(|msg| FileError {
-        message: format!("failed to get current wallpaper: {msg}"),
+    let wallpaper_info_path = get_wallpaper_info_path()?;
+
+    let wallpaper = read_to_string(wallpaper_info_path).map_err(|_| {
+        Into::<WallshiftError>::into(FileError {
+            message: "failed to open the wallpaper directory, it appears to be missing".to_owned(),
+        })
     })?;
 
-    File::try_from(wallpaper_path).map_err(|msg| {
+    File::try_from(wallpaper).map_err(|msg| {
         FileError {
             message: format!("failed to get current wallpaper: {msg}"),
         }
@@ -189,13 +199,7 @@ pub fn update_animated(settings: &Settings, path: &File) -> Result<ImagePath, Wa
 }
 
 /// Updates the current wallpaper using feh.
-/// If the option is selected it wull also update the betterlockscreen wallpaper.
-///
-/// # Panics
-///
-/// Panics if the call to feh fails.
-/// Panics if the call to betterlockscreen fails.
-///
+/// If the option is selected it will also update the betterlockscreen wallpaper.
 pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), WallshiftError> {
     // TODO: allow user to choose other wallpaper setter
     Command::new("feh")
@@ -222,24 +226,27 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), Wallshift
     }
 
     // Saves the current wallpaper
+    save_wallpaper(path)?;
 
-    let home = get_home_dir()?;
+    Ok(())
+}
 
-    std::fs::create_dir_all(format!("{home}/.local/share/wallshift")).map_err(|err| {
+/// Saves the path to the current wallpaper on the right file
+fn save_wallpaper(path: &str) -> Result<(), WallshiftError> {
+    std::fs::create_dir_all(format!(
+        "{}/
+        WALLSHIFT_DIR",
+        get_home_dir()?
+    ))
+    .map_err(|err| {
         Into::<WallshiftError>::into(FileError {
             message: format!("failed to create wallshift directory: {err}"),
         })
     })?;
 
-    std::fs::write(
-        format!("{home}/.local/share/wallshift/.current_wallpaper",),
-        path,
-    )
-    .map_err(|err| {
+    std::fs::write(get_wallpaper_info_path()?, path).map_err(|err| {
         Into::<WallshiftError>::into(FileError {
             message: format!("failed to write current wallpaper: {err}"),
         })
-    })?;
-
-    Ok(())
+    })
 }
