@@ -28,7 +28,7 @@ pub struct Cli {
 
     /// Updates the betterlockscreen wallpaper
     #[clap(long, group = "input")]
-    betterlockscreen: bool,
+    betterlockscreen: Option<bool>,
 }
 
 impl Cli {
@@ -44,10 +44,14 @@ impl Cli {
 
     pub fn get_settings(&self) -> Settings {
         let mut settings = get_configuration().unwrap_or_else(|_| Settings::default());
+
         if let Some(seconds) = self.get_seconds() {
             settings.sleep_time = seconds;
         }
-        settings.betterlockscreen = self.betterlockscreen;
+
+        if let Some(betterlockscreen) = self.betterlockscreen {
+            settings.betterlockscreen = betterlockscreen;
+        }
 
         settings
     }

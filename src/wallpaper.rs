@@ -24,17 +24,7 @@ fn get_home_dir() -> Result<String, WallshiftError> {
     Ok(home)
 }
 
-/// Gets the current wallpaper. It assumes that the user is only using feh to set the wallpaper.
-/// TODO: allow user to choose other wallpaper setter
-///
-///
-/// The .fehbg file is a shell script that is run when the user logs in. It is used to set the
-/// wallpaper. It uses the following format:
-///
-/// #!/bin/sh
-/// feh --no-fehbg --bg-fill /path/to/wallpaper
-///
-/// This function parses the .fehbg file and returns the path to the current wallpaper.
+/// Gets the current wallpaper that has been stored on a particular config file.
 pub fn get_current_wallpaper() -> Result<File, WallshiftError> {
     let wallpaper_path = read_to_string(format!(
         "{}/.local/share/wallshift/.current_wallpaper",
@@ -232,7 +222,7 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<(), Wallshift
     }
 
     // Saves the current wallpaper
-    //
+
     let home = get_home_dir()?;
 
     std::fs::create_dir_all(format!("{home}/.local/share/wallshift")).map_err(|err| {
