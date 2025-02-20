@@ -63,6 +63,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.96"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b964d184e89d9b6b67dd2715bc8e74cf3107fb2b529990c90cf517326150bf4"
+
+[[package]]
 name = "arraydeque"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -703,6 +709,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 name = "wallshift"
 version = "0.2.6"
 dependencies = [
+ "anyhow",
  "clap",
  "clap_derive",
  "config",
@@ -711,7 +718,6 @@ dependencies = [
  "rand",
  "serde",
  "serde_derive",
- "thiserror",
 ]
 
 [[package]]
