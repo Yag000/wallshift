@@ -100,10 +100,10 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File, WallshiftError>
             })
             .collect::<Vec<_>>();
 
-        let random_number = rand::thread_rng().gen_range(0..files.len());
+        let random_number = rand::rng().random_range(0..files.len());
         files.get(random_number).unwrap().path()
     } else {
-        let random_number = rand::thread_rng().gen_range(0..files.len());
+        let random_number = rand::rng().random_range(0..files.len());
         files.get(random_number).unwrap().path()
     };
 
