@@ -1,6 +1,6 @@
 use rand::Rng;
 use std::{
-    fs::{read_dir, read_to_string},
+    fs::{read_dir, read_to_string, DirEntry},
     path::PathBuf,
     process::Command,
 };
@@ -41,6 +41,11 @@ pub fn get_current_wallpaper() -> Result<File> {
     File::try_from(wallpaper).map_err(|msg| anyhow!("failed to get current wallpaper: {msg}"))
 }
 
+fn get_random_file(files: Vec<&DirEntry>) -> PathBuf {
+    let random_number = rand::rng().random_range(0..files.len());
+    files.get(random_number).unwrap().path()
+}
+
 /// Gets a random wallpaper from the wallpaper directory.
 /// It can also return a folder, which will be handled by the caller.
 /// Hidden files will be ignored.
@@ -68,28 +73,22 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File> {
         return Err(anyhow!("no wallpapers in the wallpaper directory"));
     }
 
-    let get_path_str = |path: &PathBuf| -> Result<String> {
-        path.to_str()
-            .ok_or(anyhow!("failed to convert path to str"))
-            .map(|path_str| path_str.to_owned())
-    };
-
     let path = if let Ok(current_wallpaper) = get_current_wallpaper() {
         let current_wallpaper_str = current_wallpaper.to_string();
         let files = files
             .iter()
             .filter(|entry| {
-                let entry_path = entry.path();
-                let entry_path_str = get_path_str(&entry_path).unwrap();
+                let entry_path_str = entry
+                    .path()
+                    .to_str()
+                    .expect("failed to convert path to str")
+                    .to_string();
                 entry_path_str != current_wallpaper_str
             })
             .collect::<Vec<_>>();
-
-        let random_number = rand::rng().random_range(0..files.len());
-        files.get(random_number).unwrap().path()
+        get_random_file(files)
     } else {
-        let random_number = rand::rng().random_range(0..files.len());
-        files.get(random_number).unwrap().path()
+        get_random_file(files.iter().collect())
     };
 
     File::new(path).ok_or(anyhow!("failed to get random wallpaper"))
