@@ -101,6 +101,7 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File> {
 pub fn get_next_animated_wallpaper(settings: &Settings, path: &File) -> Result<Option<ImagePath>> {
     let name = path.get_animated_wallpaper_name();
     let next_index;
+
     match path {
         File::Image(img) => {
             let max_index = read_dir(format!("{}/{name}", settings.wallpaper_dir))?.count();
@@ -120,11 +121,21 @@ pub fn get_next_animated_wallpaper(settings: &Settings, path: &File) -> Result<O
         }
     }
 
-    //TODO: Add support for other file formats
-    Ok(Some(ImagePath::from(format!(
-        "{}/{name}/{name}{}.png",
-        settings.wallpaper_dir, next_index
-    ))))
+    let base_name = format!("{name}{}", next_index);
+
+    let a = read_dir(format!("{}/{name}", settings.wallpaper_dir))?.find(|s| {
+        if let Ok(s) = s {
+            if let Some(s) = s.path().file_stem() {
+                return s.to_str() == Some(&base_name);
+            }
+        }
+        false
+    });
+
+    match a {
+        Some(Err(e)) => Err(anyhow!(e)),
+        _ => Ok(a.map(|s| ImagePath::from(s.unwrap().path().to_str().unwrap().to_string()))),
+    }
 }
 
 /// Gets the next wallpaper.
@@ -166,6 +177,9 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<()> {
     // TODO: allow user to choose other wallpaper setter
     Command::new("feh").arg("--bg-fill").arg(path).output()?;
 
+    // Saves the current wallpaper
+    save_wallpaper(path)?;
+
     // Updates the betterlockscreen wallpaper
     if settings.betterlockscreen {
         Command::new("betterlockscreen")
@@ -173,9 +187,6 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<()> {
             .arg(path)
             .output()?;
     }
-
-    // Saves the current wallpaper
-    save_wallpaper(path)?;
 
     Ok(())
 }
