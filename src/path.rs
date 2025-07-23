@@ -15,7 +15,8 @@ pub enum File {
 }
 
 impl File {
-    #[must_use] pub fn new(path: PathBuf) -> Option<Self> {
+    #[must_use]
+    pub fn new(path: PathBuf) -> Option<Self> {
         if !path.exists() {
             None
         } else if path.is_dir() {
@@ -82,7 +83,8 @@ pub struct ImagePath {
 }
 
 impl ImagePath {
-    #[must_use] pub fn new(path: PathBuf) -> Option<Self> {
+    #[must_use]
+    pub fn new(path: PathBuf) -> Option<Self> {
         if !path.exists() || path.is_dir() {
             None
         } else {
@@ -154,18 +156,21 @@ impl ImagePath {
     /// # Panics
     ///
     /// If the path is not an animated wallpaper it may panic.
-    #[must_use] pub fn get_animated_wallpaper_name(&self) -> String {
+    #[must_use]
+    pub fn get_animated_wallpaper_name(&self) -> String {
         self.animated_info.as_ref().unwrap().animated_folder.clone()
     }
 
-    #[must_use] pub fn get_animated_number(&self) -> Option<u32> {
+    #[must_use]
+    pub fn get_animated_number(&self) -> Option<u32> {
         if let Some(info) = self.animated_info.as_ref() {
             return Some(info.animated_number);
         }
         None
     }
 
-    #[must_use] pub fn path(&self) -> &Path {
+    #[must_use]
+    pub fn path(&self) -> &Path {
         &self.path
     }
 

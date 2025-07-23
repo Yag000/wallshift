@@ -42,7 +42,8 @@ impl Cli {
         None
     }
 
-    #[must_use] pub fn get_settings(&self) -> Settings {
+    #[must_use]
+    pub fn get_settings(&self) -> Settings {
         let mut settings = get_configuration().unwrap_or_else(|_| Settings::default());
 
         if let Some(seconds) = self.get_seconds() {
@@ -56,7 +57,8 @@ impl Cli {
         settings
     }
 
-    #[must_use] pub fn get_action(&self) -> Actions {
+    #[must_use]
+    pub fn get_action(&self) -> Actions {
         if self.toggle {
             return Actions::Toggle;
         }
