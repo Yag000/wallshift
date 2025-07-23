@@ -15,14 +15,14 @@ pub fn run(settings: Settings, action: Actions) {
             Ok(wallpaper) => {
                 let path = wallpaper.to_string();
                 if let Err(err) = update_wallpaper(&settings, &path) {
-                    eprintln!("Error, {}", err);
+                    eprintln!("Error, {err}");
                 }
             }
-            Err(err) => eprintln!("Error, {}", err),
+            Err(err) => eprintln!("Error, {err}"),
         },
         Actions::Get => match get_next_wallpaper(&settings) {
-            Ok(wallpaper) => println!("{}", wallpaper),
-            Err(err) => eprintln!("Error, {}", err),
+            Ok(wallpaper) => println!("{wallpaper}"),
+            Err(err) => eprintln!("Error, {err}"),
         },
     }
 }
@@ -38,8 +38,8 @@ fn run_daemon(settings: Settings) {
         .stderr(stderr); // Redirect stderr
 
     match daemonize.start() {
-        Ok(_) => launch_wallpaper_loop(settings),
-        Err(e) => eprintln!("Error, {}", e),
+        Ok(()) => launch_wallpaper_loop(settings),
+        Err(e) => eprintln!("Error, {e}"),
     }
 }
 
@@ -49,13 +49,13 @@ fn launch_wallpaper_loop(settings: Settings) {
             Ok(mut wallpaper) => {
                 let path = wallpaper.to_string();
                 if let Err(err) = update_wallpaper(&settings, &path) {
-                    eprintln!("Error, {}", err);
+                    eprintln!("Error, {err}");
                     thread::sleep(Duration::from_secs(settings.sleep_time));
                 } else {
                     let sleep_time = match wallpaper.get_sleep_time(&settings) {
                         Ok(seconds) => seconds,
                         Err(err) => {
-                            eprintln!("Error, {}", err);
+                            eprintln!("Error, {err}");
                             settings.sleep_time
                         }
                     };
@@ -63,7 +63,7 @@ fn launch_wallpaper_loop(settings: Settings) {
                     thread::sleep(Duration::from_secs(sleep_time));
                 }
             }
-            Err(err) => eprintln!("Error, {}", err),
+            Err(err) => eprintln!("Error, {err}"),
         }
     }
 }

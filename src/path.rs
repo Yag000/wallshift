@@ -15,7 +15,7 @@ pub enum File {
 }
 
 impl File {
-    pub fn new(path: PathBuf) -> Option<Self> {
+    #[must_use] pub fn new(path: PathBuf) -> Option<Self> {
         if !path.exists() {
             None
         } else if path.is_dir() {
@@ -43,8 +43,8 @@ impl File {
 impl Display for File {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Image(image) => write!(f, "{}", image),
-            Self::Folder(folder) => write!(f, "{}", folder),
+            Self::Image(image) => write!(f, "{image}"),
+            Self::Folder(folder) => write!(f, "{folder}"),
         }
     }
 }
@@ -82,7 +82,7 @@ pub struct ImagePath {
 }
 
 impl ImagePath {
-    pub fn new(path: PathBuf) -> Option<Self> {
+    #[must_use] pub fn new(path: PathBuf) -> Option<Self> {
         if !path.exists() || path.is_dir() {
             None
         } else {
@@ -104,7 +104,7 @@ impl ImagePath {
     /// If it is a file it must be contained in a folder that is contained in the wallpaper directory.
     ///  
     ///  Example:
-    ///  wallpaper_dir
+    ///  `wallpaper_dir`
     ///  |--- folder1
     ///  |    |--- wallpaper1
     ///  |-- wallpaper2
@@ -125,7 +125,7 @@ impl ImagePath {
         is_animated
     }
 
-    /// Helper function for is_animated.
+    /// Helper function for `is_animated`.
     fn check_if_animated(&mut self, settings: &Settings) -> bool {
         if let Some(parent) = self.path.parent() {
             if self.path.is_dir() {
@@ -154,18 +154,18 @@ impl ImagePath {
     /// # Panics
     ///
     /// If the path is not an animated wallpaper it may panic.
-    pub fn get_animated_wallpaper_name(&self) -> String {
+    #[must_use] pub fn get_animated_wallpaper_name(&self) -> String {
         self.animated_info.as_ref().unwrap().animated_folder.clone()
     }
 
-    pub fn get_animated_number(&self) -> Option<u32> {
+    #[must_use] pub fn get_animated_number(&self) -> Option<u32> {
         if let Some(info) = self.animated_info.as_ref() {
             return Some(info.animated_number);
         }
         None
     }
 
-    pub fn path(&self) -> &Path {
+    #[must_use] pub fn path(&self) -> &Path {
         &self.path
     }
 
@@ -265,7 +265,7 @@ impl AnimatedInfo {
             .expect("failed to convert file name to str")
             .chars()
             .rev()
-            .take_while(|c| c.is_ascii_digit())
+            .take_while(char::is_ascii_digit)
             .collect::<String>()
             .chars()
             .rev()

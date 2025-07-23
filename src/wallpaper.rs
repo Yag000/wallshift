@@ -53,15 +53,15 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File> {
     let files = read_dir(settings.wallpaper_dir.clone())?
         .filter_map(|entry| {
             if let Ok(entry) = entry {
-                if !entry
+                if entry
                     .file_name()
                     .to_str()
                     .expect("failed to convert file name to str")
                     .starts_with('.')
                 {
-                    Some(entry)
-                } else {
                     None
+                } else {
+                    Some(entry)
                 }
             } else {
                 None
@@ -121,7 +121,7 @@ pub fn get_next_animated_wallpaper(settings: &Settings, path: &File) -> Result<O
         }
     }
 
-    let base_name = format!("{name}{}", next_index);
+    let base_name = format!("{name}{next_index}");
 
     let a = read_dir(format!("{}/{name}", settings.wallpaper_dir))?.find(|s| {
         if let Ok(s) = s {
