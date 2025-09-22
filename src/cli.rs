@@ -6,6 +6,9 @@ pub enum Actions {
     Launch,
     Toggle,
     Get,
+    Stop,
+    Resume,
+    Set(String),
 }
 
 #[derive(Parser)]
@@ -25,6 +28,18 @@ pub struct Cli {
     /// Get current wallpaper
     #[clap(short, long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen"])]
     get: bool,
+
+    /// Sets the current wallpaper to a specific one.
+    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen","reset", "get"])]
+    set: Option<String>,
+
+    /// Resumes the usual cycle
+    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen","reset", "get","stop"])]
+    resume: bool,
+
+    /// Stops the slideshow. you can resume with `--resume`
+    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen","reset", "get", "resume"])]
+    stop: bool,
 
     /// Updates the betterlockscreen wallpaper
     #[clap(long, group = "input")]
@@ -64,6 +79,16 @@ impl Cli {
         }
         if self.get {
             return Actions::Get;
+        }
+        if self.resume {
+            return Actions::Resume;
+        }
+
+        if self.stop {
+            return Actions::Stop;
+        }
+        if let Some(wal) = self.set.clone() {
+            return Actions::Set(wal);
         }
 
         Actions::Launch

@@ -1,45 +1,17 @@
 use rand::Rng;
 use std::{
-    fs::{read_dir, read_to_string, DirEntry},
+    fs::{read_dir, DirEntry},
     path::PathBuf,
     process::Command,
 };
 
 use crate::{
     configuration::Settings,
+    data::{get_current_wallpaper, is_on, save_wallpaper},
     path::{File, ImagePath},
 };
 
 use anyhow::{anyhow, Result};
-
-const WALLSHIFT_DIR: &str = ".local/share/wallshift";
-
-/// Returns the path to the current wallpaper information file
-fn get_wallpaper_info_path() -> Result<String> {
-    Ok(format!(
-        "{}/{WALLSHIFT_DIR}/.current_wallpaper",
-        get_home_dir()?,
-    ))
-}
-
-fn get_home_dir() -> Result<String> {
-    let home = home::home_dir()
-        .ok_or(anyhow!("failed to get home directory"))?
-        .to_str()
-        .ok_or(anyhow!("failed to convert home directory to str"))?
-        .to_owned();
-    Ok(home)
-}
-
-/// Gets the current wallpaper that has been stored on a particular config file.
-pub fn get_current_wallpaper() -> Result<File> {
-    let wallpaper_info_path = get_wallpaper_info_path()?;
-
-    let wallpaper = read_to_string(wallpaper_info_path)
-        .map_err(|_| anyhow!("failed to open the wallpaper directory, it appears to be missing"))?;
-
-    File::try_from(wallpaper).map_err(|msg| anyhow!("failed to get current wallpaper: {msg}"))
-}
 
 fn get_random_file(files: Vec<&DirEntry>) -> PathBuf {
     let random_number = rand::rng().random_range(0..files.len());
@@ -174,6 +146,10 @@ pub fn update_animated(settings: &Settings, path: &File) -> Result<ImagePath> {
 /// Updates the current wallpaper using feh.
 /// If the option is selected it will also update the betterlockscreen wallpaper.
 pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<()> {
+    if !is_on()? {
+        return Ok(());
+    }
+
     // TODO: allow user to choose other wallpaper setter
     Command::new("feh").arg("--bg-fill").arg(path).output()?;
 
@@ -187,19 +163,6 @@ pub fn update_wallpaper(settings: &Settings, path: &str) -> Result<()> {
             .arg(path)
             .output()?;
     }
-
-    Ok(())
-}
-
-/// Saves the path to the current wallpaper on the right file
-fn save_wallpaper(path: &str) -> Result<()> {
-    std::fs::create_dir_all(format!(
-        "{}/
-        WALLSHIFT_DIR",
-        get_home_dir()?
-    ))?;
-
-    std::fs::write(get_wallpaper_info_path()?, path)?;
 
     Ok(())
 }

@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod configuration;
+pub mod data;
 pub mod path;
 pub mod setup;
 pub mod wallpaper;
