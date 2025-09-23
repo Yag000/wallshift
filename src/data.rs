@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
-use std::fs;
+use serde_derive::{Deserialize, Serialize};
+use std::{fs, path::Path};
 
 use anyhow::{anyhow, Result};
 
@@ -30,6 +30,15 @@ struct FileInfo {
     on: bool,
 }
 
+impl Default for FileInfo {
+    fn default() -> Self {
+        FileInfo {
+            wallpaper: String::default(),
+            on: true,
+        }
+    }
+}
+
 /// Reads the YAML file and returns a FileInfo struct
 fn read_config() -> Result<FileInfo> {
     std::fs::create_dir_all(format!(
@@ -38,10 +47,17 @@ fn read_config() -> Result<FileInfo> {
         get_home_dir()?
     ))?;
 
-    let path = get_wallpaper_info_path()?;
+    let path_str = get_wallpaper_info_path()?;
 
-    let contents = fs::read_to_string(path)?;
-    let config: FileInfo = serde_yaml::from_str(&contents)?;
+    let path = Path::new(&path_str);
+
+    let config: FileInfo = if path.exists() {
+        let contents = fs::read_to_string(path)?;
+        serde_yaml::from_str(&contents)?
+    } else {
+        FileInfo::default()
+    };
+
     Ok(config)
 }
 
