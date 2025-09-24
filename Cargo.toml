@@ -2,7 +2,7 @@
 name = "wallshift"
 version = "0.2.8"
 edition = "2021"
-authors = ["Yago Iglesias Vazquez  <yago.iglesias.vazquez@gmail.com>"]
+authors = ["Yago Iglesias Vazquez  <wallshift@yagoiglesias.fr>"]
 description = " Simple wallpaper updater using feh"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -23,3 +23,4 @@ home = "0.5.11"
 rand = "0.9.2"
 serde = "1.0.226"
 serde_derive = "1.0.188"
+serde_yaml = "0.9.34"

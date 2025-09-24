@@ -5,23 +5,40 @@ use daemonize::Daemonize;
 use crate::{
     cli::Actions,
     configuration::Settings,
+    data::{set_off, set_on},
     wallpaper::{get_next_wallpaper, update_wallpaper},
 };
+
+fn toggle(settings: &Settings) {
+    match get_next_wallpaper(settings) {
+        Ok(wallpaper) => {
+            let path = wallpaper.to_string();
+            if let Err(err) = update_wallpaper(settings, &path) {
+                eprintln!("Error, {err}");
+            }
+        }
+        Err(err) => eprintln!("Error, {err}"),
+    }
+}
 
 pub fn run(settings: Settings, action: Actions) {
     match action {
         Actions::Launch => run_daemon(settings),
-        Actions::Toggle => match get_next_wallpaper(&settings) {
-            Ok(wallpaper) => {
-                let path = wallpaper.to_string();
-                if let Err(err) = update_wallpaper(&settings, &path) {
-                    eprintln!("Error, {err}");
-                }
-            }
-            Err(err) => eprintln!("Error, {err}"),
-        },
+        Actions::Toggle => toggle(&settings),
         Actions::Get => match get_next_wallpaper(&settings) {
             Ok(wallpaper) => println!("{wallpaper}"),
+            Err(err) => eprintln!("Error, {err}"),
+        },
+        Actions::Resume => match set_on() {
+            Ok(()) => (),
+            Err(err) => eprintln!("Error, {err}"),
+        },
+        Actions::Stop => match set_off() {
+            Ok(()) => (),
+            Err(err) => eprintln!("Error, {err}"),
+        },
+        Actions::Set(wall) => match update_wallpaper(&settings, &wall) {
+            Ok(()) => (),
             Err(err) => eprintln!("Error, {err}"),
         },
     }

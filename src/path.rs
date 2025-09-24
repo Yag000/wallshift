@@ -54,7 +54,7 @@ impl TryFrom<String> for crate::path::File {
     type Error = &'static str;
 
     fn try_from(path: String) -> Result<Self, Self::Error> {
-        if let Some(file) = File::new(PathBuf::from(path)) {
+        if let Some(file) = Self::new(PathBuf::from(path)) {
             Ok(file)
         } else {
             Err("failed to create file")
@@ -66,7 +66,7 @@ impl TryFrom<PathBuf> for File {
     type Error = &'static str;
 
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
-        if let Some(file) = File::new(path) {
+        if let Some(file) = Self::new(path) {
             Ok(file)
         } else {
             Err("failed to create file")
@@ -162,7 +162,7 @@ impl ImagePath {
     }
 
     #[must_use]
-    pub fn get_animated_number(&self) -> Option<u32> {
+    pub const fn get_animated_number(&self) -> Option<u32> {
         if let Some(info) = self.animated_info.as_ref() {
             return Some(info.animated_number);
         }
