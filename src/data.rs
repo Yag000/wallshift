@@ -87,7 +87,7 @@ pub fn save_wallpaper(wallpaper: &str) -> Result<()> {
 
     modify_config(|info| FileInfo {
         wallpaper: wallpaper.to_string(),
-        ..info.clone()
+        ..info
     })
 }
 
@@ -104,15 +104,9 @@ pub fn is_on() -> Result<bool> {
 }
 
 pub fn set_off() -> Result<()> {
-    modify_config(|info| FileInfo {
-        on: false,
-        ..info.clone()
-    })
+    modify_config(|info| FileInfo { on: false, ..info })
 }
 
 pub fn set_on() -> Result<()> {
-    modify_config(|info| FileInfo {
-        on: true,
-        ..info.clone()
-    })
+    modify_config(|info| FileInfo { on: true, ..info })
 }
