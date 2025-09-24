@@ -32,14 +32,14 @@ struct FileInfo {
 
 impl Default for FileInfo {
     fn default() -> Self {
-        FileInfo {
+        Self {
             wallpaper: String::default(),
             on: true,
         }
     }
 }
 
-/// Reads the YAML file and returns a FileInfo struct
+/// Reads the YAML file and returns a `FileInfo` struct
 fn read_config() -> Result<FileInfo> {
     std::fs::create_dir_all(format!(
         "{}/
@@ -61,7 +61,7 @@ fn read_config() -> Result<FileInfo> {
     Ok(config)
 }
 
-/// Writes the FileInfo struct into the YAML file
+/// Writes the `FileInfo` struct into the YAML file
 fn write_config(config: &FileInfo) -> Result<()> {
     let path = get_wallpaper_info_path()?;
     let yaml = serde_yaml::to_string(config)?;

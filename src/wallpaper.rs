@@ -67,6 +67,7 @@ pub fn get_random_wallpaper(settings: &Settings) -> Result<File> {
 }
 
 /// Returns a path to the next animated wallpaper.
+///
 /// If the path is a folder it will return the first wallpaper in the folder.
 /// If the path is a file it will return the next wallpaper in the folder.
 /// If the path is the last wallpaper in the folder it will return None.

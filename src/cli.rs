@@ -47,7 +47,7 @@ pub struct Cli {
 }
 
 impl Cli {
-    fn get_seconds(&self) -> Option<u64> {
+    const fn get_seconds(&self) -> Option<u64> {
         if let Some(seconds) = self.seconds {
             return Some(seconds);
         }
