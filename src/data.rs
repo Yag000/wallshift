@@ -41,11 +41,7 @@ impl Default for FileInfo {
 
 /// Reads the YAML file and returns a `FileInfo` struct
 fn read_config() -> Result<FileInfo> {
-    std::fs::create_dir_all(format!(
-        "{}/
-        WALLSHIFT_DIR",
-        get_home_dir()?
-    ))?;
+    std::fs::create_dir_all(format!("{}/WALLSHIFT_DIR", get_home_dir()?))?;
 
     let path_str = get_wallpaper_info_path()?;
 
@@ -79,11 +75,7 @@ where
 }
 /// Saves the path to the current wallpaper on the right file
 pub fn save_wallpaper(wallpaper: &str) -> Result<()> {
-    std::fs::create_dir_all(format!(
-        "{}/
-        WALLSHIFT_DIR",
-        get_home_dir()?
-    ))?;
+    std::fs::create_dir_all(format!("{}/WALLSHIFT_DIR", get_home_dir()?))?;
 
     modify_config(|info| FileInfo {
         wallpaper: wallpaper.to_string(),
