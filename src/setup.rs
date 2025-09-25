@@ -55,12 +55,12 @@ fn run_daemon(settings: Settings) {
         .stderr(stderr); // Redirect stderr
 
     match daemonize.start() {
-        Ok(()) => launch_wallpaper_loop(settings),
+        Ok(()) => launch_wallpaper_loop(&settings),
         Err(e) => eprintln!("Error, {e}"),
     }
 }
 
-fn launch_wallpaper_loop(settings: Settings) {
+fn launch_wallpaper_loop(settings: &Settings) {
     loop {
         match get_next_wallpaper(&settings) {
             Ok(mut wallpaper) => {
