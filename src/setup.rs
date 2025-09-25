@@ -62,14 +62,14 @@ fn run_daemon(settings: Settings) {
 
 fn launch_wallpaper_loop(settings: &Settings) {
     loop {
-        match get_next_wallpaper(&settings) {
+        match get_next_wallpaper(settings) {
             Ok(mut wallpaper) => {
                 let path = wallpaper.to_string();
-                if let Err(err) = update_wallpaper(&settings, &path) {
+                if let Err(err) = update_wallpaper(settings, &path) {
                     eprintln!("Error, {err}");
                     thread::sleep(Duration::from_secs(settings.sleep_time));
                 } else {
-                    let sleep_time = match wallpaper.get_sleep_time(&settings) {
+                    let sleep_time = match wallpaper.get_sleep_time(settings) {
                         Ok(seconds) => seconds,
                         Err(err) => {
                             eprintln!("Error, {err}");
