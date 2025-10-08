@@ -23,7 +23,7 @@ fn toggle(settings: &Settings) {
 
 pub fn run(settings: Settings, action: Actions) {
     match action {
-        Actions::Launch => run_daemon(settings),
+        Actions::Launch => run_daemon(&settings),
         Actions::Toggle => toggle(&settings),
         Actions::Get => match get_next_wallpaper(&settings) {
             Ok(wallpaper) => println!("{wallpaper}"),
@@ -44,7 +44,7 @@ pub fn run(settings: Settings, action: Actions) {
     }
 }
 
-fn run_daemon(settings: Settings) {
+fn run_daemon(settings: &Settings) {
     let stdout = File::create("/tmp/wallshift.out").unwrap();
     let stderr = File::create("/tmp/wallshift.err").unwrap();
 
@@ -55,7 +55,7 @@ fn run_daemon(settings: Settings) {
         .stderr(stderr); // Redirect stderr
 
     match daemonize.start() {
-        Ok(()) => launch_wallpaper_loop(&settings),
+        Ok(()) => launch_wallpaper_loop(settings),
         Err(e) => eprintln!("Error, {e}"),
     }
 }

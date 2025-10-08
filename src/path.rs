@@ -128,7 +128,7 @@ impl ImagePath {
     }
 
     /// Helper function for `is_animated`.
-    fn check_if_animated(&mut self, settings: &Settings) -> bool {
+    fn check_if_animated(&self, settings: &Settings) -> bool {
         if let Some(parent) = self.path.parent() {
             if self.path.is_dir() {
                 if let Some(str) = parent.to_str() {
