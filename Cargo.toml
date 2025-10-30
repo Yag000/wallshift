@@ -15,7 +15,7 @@ keywords = ["wallpaper", "wallpaper-changer"]
 
 [dependencies]
 anyhow = "1.0.100"
-clap = "4.5.49"
+clap = "4.5.50"
 clap_derive = "4.5.49"
 config = "0.15.18"
 daemonize = "0.5.0"
