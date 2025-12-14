@@ -5,23 +5,15 @@ use anyhow::{anyhow, Result};
 
 use crate::path::File;
 
-const WALLSHIFT_DIR: &str = ".local/share/wallshift";
-
 /// Returns the path to the current wallpaper information file
 fn get_wallpaper_info_path() -> Result<String> {
-    Ok(format!(
-        "{}/{WALLSHIFT_DIR}/.current_wallpaper.yaml",
-        get_home_dir()?,
-    ))
-}
-
-fn get_home_dir() -> Result<String> {
-    let home = home::home_dir()
-        .ok_or(anyhow!("failed to get home directory"))?
+    Ok(dirs::data_local_dir()
+        .ok_or(anyhow!("failed to get local data directory"))?
+        .join("wallshift")
+        .join(".current_wallpaper.yaml")
         .to_str()
-        .ok_or(anyhow!("failed to convert home directory to str"))?
-        .to_owned();
-    Ok(home)
+        .ok_or(anyhow!("failed to convert wallpaper info path to str"))?
+        .to_owned())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,7 +33,10 @@ impl Default for FileInfo {
 
 /// Reads the YAML file and returns a `FileInfo` struct
 fn read_config() -> Result<FileInfo> {
-    std::fs::create_dir_all(format!("{}/WALLSHIFT_DIR", get_home_dir()?))?;
+    let path = dirs::data_local_dir()
+        .ok_or(anyhow!("failed to get local data directory"))?
+        .join("wallshift");
+    std::fs::create_dir_all(path)?;
 
     let path_str = get_wallpaper_info_path()?;
 
@@ -75,7 +70,10 @@ where
 }
 /// Saves the path to the current wallpaper on the right file
 pub fn save_wallpaper(wallpaper: &str) -> Result<()> {
-    std::fs::create_dir_all(format!("{}/WALLSHIFT_DIR", get_home_dir()?))?;
+    let path = dirs::data_local_dir()
+        .ok_or(anyhow!("failed to get local data directory"))?
+        .join("wallshift");
+    std::fs::create_dir_all(path)?;
 
     modify_config(|info| FileInfo {
         wallpaper: wallpaper.to_string(),

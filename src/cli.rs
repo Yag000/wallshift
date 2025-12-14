@@ -30,15 +30,15 @@ pub struct Cli {
     get: bool,
 
     /// Sets the current wallpaper to a specific one.
-    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen", "reset", "get"])]
+    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen", "get"])]
     set: Option<String>,
 
     /// Resumes the usual cycle
-    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen", "reset", "get", "stop"])]
+    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen", "get", "stop"])]
     resume: bool,
 
     /// Stops the slideshow. you can resume with `--resume`
-    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen", "reset", "get", "resume"])]
+    #[clap(long, conflicts_with_all = &["toggle", "seconds", "minutes", "betterlockscreen", "get", "resume"])]
     stop: bool,
 
     /// Updates the betterlockscreen wallpaper

@@ -12,7 +12,7 @@ impl Default for Settings {
         Self {
             wallpaper_dir: format!(
                 "{}/Pictures/Wallpapers",
-                home::home_dir().unwrap().to_str().unwrap()
+                dirs::home_dir().unwrap().to_str().unwrap()
             ),
             betterlockscreen: false,
             sleep_time: 1800,
@@ -22,8 +22,8 @@ impl Default for Settings {
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let config_path = format!(
-        "{}/.config/wallshift/config.yml",
-        home::home_dir().unwrap().to_str().unwrap()
+        "{}/wallshift/config.yml",
+        dirs::config_dir().unwrap().to_str().unwrap()
     );
     let settings = config::Config::builder()
         .add_source(config::File::new(&config_path, config::FileFormat::Yaml))
