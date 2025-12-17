@@ -1,6 +1,6 @@
 [package]
 name = "wallshift"
-version = "0.2.9"
+version = "0.2.10"
 edition = "2021"
 authors = ["Yago Iglesias Vazquez  <wallshift@yagoiglesias.fr>"]
 description = " Simple wallpaper updater using feh"
