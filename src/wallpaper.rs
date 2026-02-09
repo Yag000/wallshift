@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 use std::{
     fs::{read_dir, DirEntry},
     path::PathBuf,
